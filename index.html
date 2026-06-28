@@ -566,12 +566,12 @@ document.addEventListener('click', (e) => {
 });
 
 /* ==============================================================
-   AUTO-SYNC CLOUD: TERSAMBUNG PENUH SEPERTI APPS SCRIPT
+   MESIN PENYIMPANAN OTOMATIS KE FIREBASE (ANTI-BLOKIR)
    ============================================================== */
-const STORAGE_KEY = 'jian-ascension-state-vfinal-updated';
-const URL_CLOUD = "https://script.google.com/macros/s/AKfycbzVch4awvs6cUov6Ky3jf4Jg7GBjrKPRYoFj8fxD4C8X-Mz93LFtRrmF9VhBHbASq5q-g/exec";
+const FIREBASE_URL = "https://mylifesistem-3dada-default-rtdb.firebaseio.com/";
 
-// Fungsi untuk menampilkan indikator ala Apps Script di pojok layar
+const STORAGE_KEY = 'jian-ascension-state-vfinal-updated';
+
 function showSyncStatus(msg) {
     let el = document.getElementById('cloud-sync-status');
     if(!el) {
@@ -587,29 +587,38 @@ function showSyncStatus(msg) {
     }
 }
 
-// Menyimpan secara diam-diam setiap kali Anda merubah sesuatu (misal: selesai quest)
-function save(){ 
+// Fitur Save Otomatis setiap kali ada perubahan
+function save() { 
     clearTimeout(saveTimer); 
-    saveTimer = setTimeout(()=>{ 
+    saveTimer = setTimeout(() => { 
         if(!state) return; 
-        try{ 
-            // 1. Simpan di Lokal (Browser)
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); 
+        
+        // 1. Simpan di Lokal HP/PC
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e) {}
+        
+        // 2. Simpan ke Firebase secara transparan dan tanpa loading mengganggu
+        if (FIREBASE_URL && FIREBASE_URL !== "MASUKKAN_URL_FIREBASE_DI_SINI") {
+            showSyncStatus('☁️ Menyimpan ke Cloud...');
             
-            showSyncStatus('☁️ Mengirim data ke Cloud...');
+            let cleanURL = FIREBASE_URL.endsWith('/') ? FIREBASE_URL.slice(0, -1) : FIREBASE_URL;
 
-            // 2. Simpan di Cloud secara rahasia (Background Process)
-            fetch(URL_CLOUD, { 
-                method: "POST", 
-                headers: { "Content-Type": "text/plain;charset=utf-8" }, 
-                body: JSON.stringify(state) 
+            fetch(cleanURL + "/kultivasi_data.json", {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(state)
             })
-            .then(res => showSyncStatus('Cloud Tersinkronisasi ✅'))
-            .catch(e => { console.log("Gagal auto-sync ke cloud"); showSyncStatus('Gagal terhubung ke Cloud ❌'); });
-
-        } catch(e) {} 
+            .then(res => {
+                if (res.ok) showSyncStatus('Cloud Tersinkronisasi ✅');
+                else showSyncStatus('Gagal Sinkronisasi ❌');
+            })
+            .catch(e => {
+                showSyncStatus('Gagal terhubung ke Cloud ❌');
+            });
+        }
     }, 1000); 
 }
+
+/* ============================================================== */
 
 const STAT_META = {
   strength:{label:'Strength',group:'Body',color:'var(--jade)'}, health:{label:'Health',group:'Body',color:'var(--jade)'},
@@ -676,6 +685,7 @@ function getDynamicRealmInfo(c) {
         };
     }
     
+    // Dari Level 20 ke atas, mengikuti indeks Energy. Sinkronisasi jika ketinggalan.
     let idx = Math.max(2, c.realmIndex || 0); 
     const r = state.realms[idx] || state.realms[state.realms.length-1];
     const nextR = state.realms[idx+1];
@@ -762,14 +772,20 @@ const TITLE_HINTS = {
 function getTitleStyle(title) {
     let base = 'padding: 6px 18px; border-radius: 20px; font-size: 13.5px; letter-spacing: 1.5px; text-transform: uppercase; margin-top: 8px; position: relative; z-index: 5; text-align: center; transition: all 0.3s ease; ';
 
+    // Mythic & Highest Tier
     if(title === 'All-Seer\'s Nightmare') return base + 'background:linear-gradient(90deg, #111, #ff0044); color:#fff; text-shadow:0 0 10px #ff0044; border:1px solid #ff0044; font-family: var(--font-display); font-weight:900; animation: floatBanner 3s ease-in-out infinite;';
     if(title === 'Royal Ancient God') return base + 'background:linear-gradient(90deg, #ffd700, #ff8c00); color:#000; font-weight:900; border:none; box-shadow: 0 0 15px rgba(255,215,0,0.6); font-family: var(--font-display); text-shadow: 0 1px 2px rgba(255,255,255,0.8);';
     if(title === 'Suzaku Lord') return base + 'background:linear-gradient(90deg, #ff4768, #ff8a3d); color:#fff; border:none; box-shadow: 0 0 15px rgba(255,71,104,0.6); font-family: var(--font-display); font-weight:800;';
+    
+    // Legendary
     if(title === 'Heaven Trampler' || title === 'Defying Sovereign' || title === 'Dragon Ascendant') return base + 'background:linear-gradient(90deg, var(--gold), var(--orange)); color:#1a1206; font-weight:800; font-family: var(--font-display); box-shadow: 0 0 10px rgba(240,185,59,0.4);';
     if(title === 'Ji Realm Master' || title === 'Thunder Sovereign') return base + 'background:linear-gradient(90deg, var(--cyan), var(--arise-bright)); color:#0a0a14; font-weight:800; border:none; font-family: var(--font-display); box-shadow: 0 0 10px rgba(45,212,244,0.4);';
     if(title === 'Fate Defier' || title === 'Karma Lord' || title === 'True & False Lord') return base + 'background:linear-gradient(90deg, var(--jade), var(--cyan)); color:#0a0a14; font-weight:800; border:none; font-family: var(--font-display);';
+    
+    // Epic / Rare
     if(title === 'Dao Scholar' || title === 'Wealth Core Lord' || title === 'Realm Walker' || title === 'Mortal Cultivator') return base + 'background:rgba(124,92,255,0.15); color:var(--arise-bright); border: 1px solid rgba(124,92,255,0.5); font-family: var(--font-display); font-weight:700;';
 
+    // Common/Basic
     return base + 'color:var(--muted); background:rgba(255,255,255,0.05); border: 1px solid var(--border-strong); font-family: var(--font-system); font-weight:600;';
 }
 
@@ -847,6 +863,7 @@ function loadState(){ try{ const saved = localStorage.getItem(STORAGE_KEY); if(s
 
 function addActivityLog(note, exp = 0) { const today = todayStr(); state.meta.activityLog = state.meta.activityLog || {}; state.meta.activityLog[today] = (state.meta.activityLog[today] || 0) + 1; }
 
+// EXP Scaling: Dibuat jauh lebih curam di level atas
 function expNeeded(level){ 
     return Math.round(100 * Math.pow(level, 1.7) + (level > 10 ? Math.pow(level - 10, 2) * 50 : 0)); 
 }
@@ -854,6 +871,7 @@ function spiritualNeeded(level){ return Math.round(30 * Math.pow(level, 1.3)); }
 
 function recomputeLifeScore(){
   if(!state) return; const c = state.character; const statSum = Object.values(state.stats).reduce((a,b)=>a+b,0);
+  // Ensured starting from 0 by subtracting 1 from levels
   c.lifeScore = Math.max(0, (c.level-1)*10 + statSum*2 + c.streak*5 + c.realmIndex*50 + (state.spiritual.level-1)*8);
 }
 
@@ -879,6 +897,7 @@ function gainExp(amount){
   let leveled=false; while(c.level<1000 && c.exp >= expNeeded(c.level)){ c.exp -= expNeeded(c.level); c.level += 1; leveled=true; }
   if(leveled){ 
       SFX.levelUp(); showLevelUp(c.level); 
+      // Force Realm Sinkronisasi untuk Level 20+ agar masuk ke struktur energi dengan benar
       if(c.level >= 20 && c.realmIndex < 2) {
           c.realmIndex = 2;
       }
@@ -1784,11 +1803,6 @@ function renderSettingsModal(){
     </div></details>
     <details class="settings-section"><summary>⚔️ EXP & Gameplay</summary><div class="settings-body"><label style="display:block;font-size:11.5px;color:var(--muted);margin-bottom:5px;font-weight:600;">Multiplier EXP</label><div class="btn-group">${[0.5,1.0,1.5,2.0].map(m => `<button class="btn btn-secondary ${s.expMultiplier===m?'active':''}" onclick="setSetting('expMultiplier',${m})">${m}x</button>`).join('')}</div><div class="toggle-row"><label>Efek Suara (SFX)</label><input type="checkbox" ${s.soundEnabled?'checked':''} onchange="setSetting('soundEnabled',this.checked)"></div><div class="toggle-row"><label>Floating EXP Animasi</label><input type="checkbox" ${s.showFloatingExp?'checked':''} onchange="setSetting('showFloatingExp',this.checked)"></div><div class="toggle-row"><label>Combo Bonus</label><input type="checkbox" ${s.comboBonus?'checked':''} onchange="setSetting('comboBonus',this.checked)"></div><div class="toggle-row"><label>Streak Bonus</label><input type="checkbox" ${s.streakBonus?'checked':''} onchange="setSetting('streakBonus',this.checked)"></div></div></details>
     <details class="settings-section"><summary>💾 Manajemen Data & Reset</summary><div class="settings-body">
-      
-      <div class="settings-divider" style="color:var(--cyan); font-weight:bold;">Cloud Sync Otomatis Aktif ☁️</div>
-      <div class="small muted mt-10">Data Anda selalu tersimpan dan diperbarui otomatis ke Cloud setiap kali web dibuka atau ada perubahan. Tidak perlu lagi tombol manual!</div>
-
-      <div class="settings-divider">Lokal Backup</div>
       <div class="settings-btn-row"><button class="btn btn-primary" onclick="exportData()" style="flex:1;">📤 Export JSON</button><label class="btn btn-secondary" style="flex:1; cursor:pointer; text-align:center;">📥 Import JSON<input type="file" accept=".json" style="display:none;" onchange="importData(event)"></label></div><div class="settings-divider">Reset Per-Modul (Progres Aman)</div><div class="settings-btn-row"><button class="btn btn-secondary btn-sm" onclick="resetModule('todos')">Reset To-Do</button><button class="btn btn-secondary btn-sm" onclick="resetModule('kanban')">Reset Kanban</button><button class="btn-secondary btn-sm" onclick="resetModule('sedekah')">Reset Sedekah</button><button class="btn-secondary btn-sm" onclick="resetModule('habits')">Reset Habits</button></div><button class="btn btn-danger btn-block" onclick="confirmResetData()" style="margin-top:1rem">⚠️ RESET TOTAL (HAPUS SEMUA)</button></div></details>
     <button class="btn btn-secondary btn-block mt-14" onclick="closeModal('modal-settings')">Tutup Pengaturan</button>
   </div></div>`;
@@ -1836,47 +1850,39 @@ function triggerBreakthrough(realmName){ const el = document.getElementById('fx-
 function triggerBossDefeat(name){ state.character.bossesDefeated = (state.character.bossesDefeated||0)+1; const el = document.getElementById('fx-boss'); document.getElementById('fx-boss-title').textContent = name; el.classList.add('active'); setTimeout(()=>el.classList.remove('active'), 2600); }
 function showTrophy(title, subtitle, icon) { document.getElementById('fx-boss-title').textContent = title; document.querySelector('#fx-boss .fx-sub').textContent = subtitle; const el = document.getElementById('fx-boss'); el.classList.add('active'); SFX.levelUp(); setTimeout(()=>el.classList.remove('active'), 3500); }
 
-/* ==============================================================
-   INISIALISASI AWAL - MENGUNDUH DATA DARI CLOUD SAAT DIBUKA
-   ============================================================== */
-function init(){
-  // Peringatan Khusus untuk Opera Mini
-  if (navigator.userAgent.includes("Opera Mini") || navigator.userAgent.includes("OPIOS")) {
-      alert("PERINGATAN: Anda menggunakan Opera Mini. Browser ini mematikan fitur penyimpanan otomatis Web App! Silakan buka web ini melalui Google Chrome agar progress Kultivasi Anda tidak kembali ke 0.");
-  }
+function init() {
+    if (FIREBASE_URL && FIREBASE_URL !== "MASUKKAN_URL_FIREBASE_DI_SINI") {
+        document.body.insertAdjacentHTML('beforeend', '<div id="cloud-loading" style="position:fixed;inset:0;z-index:9999;background:var(--void);display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--cyan);font-family:var(--font-display);font-size:18px;"><div class="ring-orbit" style="position:relative; width:40px; height:40px; margin-bottom:20px; animation: orbitSpin 2s linear infinite; border: 2px dashed var(--cyan); border-radius:50%;"></div> Menarik data dari Cloud...</div>');
+        
+        let cleanURL = FIREBASE_URL.endsWith('/') ? FIREBASE_URL.slice(0, -1) : FIREBASE_URL;
 
-  // Tampilkan layar memuat sebentar
-  document.body.insertAdjacentHTML('beforeend', '<div id="cloud-loading" style="position:fixed;inset:0;z-index:9999;background:var(--void);display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--cyan);font-family:var(--font-display);font-size:18px;"><div class="ring-orbit" style="position:relative; width:40px; height:40px; margin-bottom:20px; animation: orbitSpin 2s linear infinite; border: 2px dashed var(--cyan); border-radius:50%;"></div> Menyelaraskan dengan Cloud...</div>');
-  
-  fetch(URL_CLOUD)
-  .then(res => res.text())
-  .then(text => {
-     let cloudState = null;
-     try { cloudState = JSON.parse(text); } catch(e){}
-     
-     // Jika cloud punya data utuh, pakai data cloud
-     if(cloudState && !cloudState.status) { 
-         state = migrateState(deepMerge(DEFAULT_STATE(), cloudState));
-         localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); // Backup ke lokal browser
-     } else {
-         // Jika kosong, pakai data lokal yang ada
-         let loaded = loadState(); 
-         state = loaded ? migrateState(deepMerge(DEFAULT_STATE(), loaded)) : DEFAULT_STATE();
-     }
-     finishInit();
-  })
-  .catch(err => {
-     // Kalau sedang offline (tidak ada sinyal), pakai data lokal browser
-     let loaded = loadState(); 
-     state = loaded ? migrateState(deepMerge(DEFAULT_STATE(), loaded)) : DEFAULT_STATE();
-     finishInit();
-  });
+        fetch(cleanURL + "/kultivasi_data.json")
+        .then(res => res.json())
+        .then(cloudData => {
+            if (cloudData) {
+                state = migrateState(deepMerge(DEFAULT_STATE(), cloudData));
+            } else {
+                let loaded = loadState(); 
+                state = loaded ? migrateState(deepMerge(DEFAULT_STATE(), loaded)) : DEFAULT_STATE();
+            }
+            finishInit();
+        })
+        .catch(err => {
+            let loaded = loadState(); 
+            state = loaded ? migrateState(deepMerge(DEFAULT_STATE(), loaded)) : DEFAULT_STATE();
+            finishInit();
+        });
+    } else {
+        let loaded = loadState(); 
+        state = loaded ? migrateState(deepMerge(DEFAULT_STATE(), loaded)) : DEFAULT_STATE();
+        finishInit();
+    }
 }
 
 function finishInit() {
-  const l = document.getElementById('cloud-loading'); if(l) l.remove();
-  rollover(); recomputeLifeScore(); buildModals(); render(); 
-  setInterval(updateTimeBlockUI, 30000); 
+    const l = document.getElementById('cloud-loading'); if(l) l.remove();
+    rollover(); recomputeLifeScore(); buildModals(); render(); 
+    setInterval(updateTimeBlockUI, 30000); 
 }
 
 window.onload = function() { init(); };
