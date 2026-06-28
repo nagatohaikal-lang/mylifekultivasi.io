@@ -567,6 +567,47 @@ document.addEventListener('click', (e) => {
 
 const STORAGE_KEY = 'jian-ascension-state-vfinal-updated';
 
+/* ==============================================================
+   MESIN PENGIRIM KE GOOGLE SHEETS (CLOUD)
+   ============================================================== */
+const URL_CLOUD = "https://script.google.com/macros/s/AKfycbzVch4awvs6cUov6Ky3jf4Jg7GBjrKPRYoFj8fxD4C8X-Mz93LFtRrmF9VhBHbASq5q-g/exec";
+
+function simpanDataKeCloud() {
+    if (!state || !state.character) return;
+    
+    // Munculkan notifikasi loading
+    showToast("Membuka portal ke Pusaka Awan...", "muted");
+    
+    // Siapkan data pemain
+    const data = {
+        username: state.character.name,
+        level: state.character.level,
+        exp: state.character.exp
+    };
+
+    // Tembakkan data ke URL Apps Script
+    fetch(URL_CLOUD, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(res => {
+        if(res.status === 'success') {
+            showToast("Pencapaian berhasil disegel di Cloud!", "ach");
+            SFX.victory();
+        } else {
+            showToast("Gagal menyegel data.", "bad");
+            SFX.error();
+        }
+    })
+    .catch(error => {
+        showToast("Portal tertutup! Periksa koneksi internet.", "bad");
+        SFX.error();
+    });
+}
+/* ============================================================== */
+
 const STAT_META = {
   strength:{label:'Strength',group:'Body',color:'var(--jade)'}, health:{label:'Health',group:'Body',color:'var(--jade)'},
   discipline:{label:'Discipline',group:'Soul',color:'var(--gold)'}, knowledge:{label:'Knowledge',group:'Mind',color:'var(--cyan)'},
@@ -1750,7 +1791,13 @@ function renderSettingsModal(){
       <div class="toggle-row"><label>Tampilkan 3 Aturan Anti-Gagal</label><input type="checkbox" ${s.show3Rules?'checked':''} onchange="setSetting('show3Rules',this.checked)"></div>
     </div></details>
     <details class="settings-section"><summary>⚔️ EXP & Gameplay</summary><div class="settings-body"><label style="display:block;font-size:11.5px;color:var(--muted);margin-bottom:5px;font-weight:600;">Multiplier EXP</label><div class="btn-group">${[0.5,1.0,1.5,2.0].map(m => `<button class="btn btn-secondary ${s.expMultiplier===m?'active':''}" onclick="setSetting('expMultiplier',${m})">${m}x</button>`).join('')}</div><div class="toggle-row"><label>Efek Suara (SFX)</label><input type="checkbox" ${s.soundEnabled?'checked':''} onchange="setSetting('soundEnabled',this.checked)"></div><div class="toggle-row"><label>Floating EXP Animasi</label><input type="checkbox" ${s.showFloatingExp?'checked':''} onchange="setSetting('showFloatingExp',this.checked)"></div><div class="toggle-row"><label>Combo Bonus</label><input type="checkbox" ${s.comboBonus?'checked':''} onchange="setSetting('comboBonus',this.checked)"></div><div class="toggle-row"><label>Streak Bonus</label><input type="checkbox" ${s.streakBonus?'checked':''} onchange="setSetting('streakBonus',this.checked)"></div></div></details>
-    <details class="settings-section"><summary>💾 Manajemen Data & Reset</summary><div class="settings-body"><div class="settings-btn-row"><button class="btn btn-primary" onclick="exportData()" style="flex:1;">📤 Export JSON</button><label class="btn btn-secondary" style="flex:1; cursor:pointer; text-align:center;">📥 Import JSON<input type="file" accept=".json" style="display:none;" onchange="importData(event)"></label></div><div class="settings-divider">Reset Per-Modul (Progres Aman)</div><div class="settings-btn-row"><button class="btn btn-secondary btn-sm" onclick="resetModule('todos')">Reset To-Do</button><button class="btn btn-secondary btn-sm" onclick="resetModule('kanban')">Reset Kanban</button><button class="btn-secondary btn-sm" onclick="resetModule('sedekah')">Reset Sedekah</button><button class="btn-secondary btn-sm" onclick="resetModule('habits')">Reset Habits</button></div><button class="btn btn-danger btn-block" onclick="confirmResetData()" style="margin-top:1rem">⚠️ RESET TOTAL (HAPUS SEMUA)</button></div></details>
+    <details class="settings-section"><summary>💾 Manajemen Data & Reset</summary><div class="settings-body">
+      
+      <div class="settings-divider">Backup Cloud (Google Sheets)</div>
+      <button class="btn btn-gold btn-block" style="margin-top:0.5rem" onclick="simpanDataKeCloud()">☁️ Segel Data ke Pusaka Cloud</button>
+
+      <div class="settings-divider">Lokal Backup</div>
+      <div class="settings-btn-row"><button class="btn btn-primary" onclick="exportData()" style="flex:1;">📤 Export JSON</button><label class="btn btn-secondary" style="flex:1; cursor:pointer; text-align:center;">📥 Import JSON<input type="file" accept=".json" style="display:none;" onchange="importData(event)"></label></div><div class="settings-divider">Reset Per-Modul (Progres Aman)</div><div class="settings-btn-row"><button class="btn btn-secondary btn-sm" onclick="resetModule('todos')">Reset To-Do</button><button class="btn btn-secondary btn-sm" onclick="resetModule('kanban')">Reset Kanban</button><button class="btn-secondary btn-sm" onclick="resetModule('sedekah')">Reset Sedekah</button><button class="btn-secondary btn-sm" onclick="resetModule('habits')">Reset Habits</button></div><button class="btn btn-danger btn-block" onclick="confirmResetData()" style="margin-top:1rem">⚠️ RESET TOTAL (HAPUS SEMUA)</button></div></details>
     <button class="btn btn-secondary btn-block mt-14" onclick="closeModal('modal-settings')">Tutup Pengaturan</button>
   </div></div>`;
 }
