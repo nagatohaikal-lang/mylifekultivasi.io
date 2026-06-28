@@ -1,0 +1,1809 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>MYSISTEM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800;900&family=Rajdhani:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<!-- Chart.js Injected for Advanced Analytics -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+:root{
+  --void:#08080F;
+  --void-2:#0F1020;
+  --surface:rgba(255,255,255,0.035);
+  --surface-strong:rgba(255,255,255,0.07);
+  --border:rgba(150,135,255,0.16);
+  --border-strong:rgba(170,155,255,0.30);
+  --glass:rgba(18,18,34,0.62);
+  --arise:#7C5CFF;
+  --arise-bright:#A48BFF;
+  --cyan:#2DD4F4;
+  --gold:#F0B93B;
+  --gold-soft:#F7D27A;
+  --jade:#34D399;
+  --crimson:#FF4768;
+  --orange:#FF8A3D;
+  --bone:#ECEAF5;
+  --muted:#9492AC;
+  --muted-2:#615F78;
+  --font-display:'Cinzel',serif;
+  --font-system:'Rajdhani',sans-serif;
+  --font-body:'Inter',sans-serif;
+  --font-head:'Cinzel',serif;
+}
+
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;}
+body{
+  background: radial-gradient(circle at 50% 30%, #1a1025 0%, #08080F 50%, #030305 100%);
+  color:var(--bone);
+  font-family:var(--font-body);
+  overflow-x:hidden;
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+body::before {
+  content: ''; position: fixed; inset: 0; z-index: -2; pointer-events: none;
+  background: radial-gradient(circle at 15% 70%, rgba(45,212,244,0.04) 0%, transparent 50%),
+              radial-gradient(circle at 85% 20%, rgba(124,92,255,0.04) 0%, transparent 50%);
+}
+
+button,input,select,textarea{font-family:inherit;}
+button{cursor:pointer;}
+::selection{background:var(--arise);color:#fff;}
+a{color:var(--cyan);}
+
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+
+.holo-text {
+    background: linear-gradient(90deg, var(--cyan), var(--arise-bright), var(--jade), var(--cyan));
+    background-size: 300% 100%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: holoFlow 4s linear infinite;
+    font-weight: 800;
+    text-shadow: 0 0 15px rgba(45, 212, 244, 0.4);
+}
+@keyframes holoFlow { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
+
+#bg-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; }
+
+.click-ripple {
+    position: fixed; border-radius: 50%; pointer-events: none;
+    background: rgba(45, 212, 244, 0.4); transform: translate(-50%, -50%) scale(0);
+    animation: rippleAnim 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; z-index: 9999;
+    box-shadow: 0 0 15px var(--cyan);
+}
+@keyframes rippleAnim { 100% { transform: translate(-50%, -50%) scale(4); opacity: 0; } }
+
+.screen{position:relative;z-index:1;max-width:480px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;}
+
+.app-header{
+  position:sticky;top:0;z-index:20; padding:14px 16px 10px;
+  background:linear-gradient(to bottom, rgba(8,8,15,0.96), rgba(8,8,15,0.7));
+  backdrop-filter:blur(14px); border-bottom:1px solid var(--border);
+}
+.wordmark-row{display:flex;align-items:center;justify-content:space-between;}
+.wordmark{ font-family:var(--font-display); font-size:18px;letter-spacing:2px;font-weight:800; }
+
+.day-counter {
+  font-family: var(--font-display); font-size: 14px;
+  background: linear-gradient(90deg, var(--gold-soft), var(--orange));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  font-weight: 800; letter-spacing: 1px; text-transform: uppercase;
+  filter: drop-shadow(0 0 4px rgba(240, 185, 59, 0.4));
+  display: flex; align-items: center; gap: 4px;
+}
+
+.recovery-banner{
+  margin-top:8px;font-size:12px;font-weight:600;color:#fff;
+  background:linear-gradient(90deg,rgba(255,71,104,0.35),rgba(255,71,104,0.12));
+  border:1px solid rgba(255,71,104,0.5);
+  border-radius:10px;padding:8px 10px;letter-spacing:0.3px;
+}
+.recovery-banner small{display:block;font-weight:400;color:#ffd9df;margin-top:2px;font-size:11px;}
+
+.tab-content{flex:1;padding:16px 16px 110px;animation:tabIn 0.28s ease;}
+@keyframes tabIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+.bottom-nav{
+  position:fixed;left:0;right:0;bottom:0;z-index:30; max-width:480px;margin:0 auto; display:flex;
+  background:var(--glass); backdrop-filter:blur(20px); border-top:1px solid var(--border);
+  padding:6px 4px calc(6px + env(safe-area-inset-bottom));
+  overflow-x:auto; scroll-behavior:smooth; -ms-overflow-style:none;scrollbar-width:none;
+}
+.bottom-nav::-webkit-scrollbar{display:none;}
+.nav-btn{
+  flex:1; min-width: 62px; display:flex;flex-direction:column;align-items:center;gap:3px; flex-shrink: 0;
+  background:none;border:none;color:var(--muted);padding:8px 0 4px;border-radius:12px;
+  font-family:var(--font-system);font-size:9.5px;letter-spacing:0.3px;font-weight:600; transition:color .2s;
+}
+.nav-btn svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;transition:filter .2s;}
+.nav-btn.active{color:var(--arise-bright);}
+.nav-btn.active svg{filter:drop-shadow(0 0 6px rgba(164,139,255,0.7));}
+
+.holo-box {
+  background: rgba(255,255,255,0.02) !important;
+  border: 1px solid rgba(45, 212, 244, 0.2) !important;
+  box-shadow: inset 0 0 15px rgba(124, 92, 255, 0.05), 0 5px 20px rgba(0,0,0,0.5) !important;
+  backdrop-filter: blur(12px) !important;
+}
+
+.glass-panel{
+  background:var(--glass); border:1px solid var(--border); border-radius:18px;
+  box-shadow:0 10px 30px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.04);
+}
+.card{ background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:14px; margin-bottom:14px; }
+.card-title{ font-family:var(--font-system);font-size:12.5px;letter-spacing:1.2px;font-weight:700; color:var(--muted);text-transform:uppercase;margin:0 0 10px;display:flex;align-items:center;justify-content:space-between; }
+.section-title{ font-family:var(--font-display);font-size:15px;font-weight:600;color:var(--bone); margin:22px 0 10px;letter-spacing:0.4px; }
+.section-title:first-child{margin-top:0;}
+
+.btn{ font-family:var(--font-system);font-weight:700;letter-spacing:0.5px;font-size:13px; border-radius:12px;padding:10px 14px;border:1px solid transparent; display:inline-flex;align-items:center;justify-content:center;gap:6px; transition:transform .12s, opacity .12s; }
+.btn-secondary { background:rgba(255,255,255,0.05); color:var(--bone); border:1px solid var(--border); }
+.btn-secondary:hover { background:rgba(255,255,255,0.1); }
+.btn:active{transform:scale(0.96);}
+.btn-block{width:100%;}
+.btn-primary{background:linear-gradient(90deg,var(--arise),var(--cyan));color:#0a0a14;}
+.btn-ghost{background:rgba(255,255,255,0.04);border:1px solid var(--border-strong);color:var(--bone);}
+.btn-ghost:hover{background:rgba(255,255,255,0.08);}
+.btn-danger{background:rgba(255,71,104,0.1);border:1px solid rgba(255,71,104,0.45);color:#ffb4c1;}
+.btn-gold{background:linear-gradient(90deg,var(--gold),var(--orange));color:#1a1206;}
+.btn-sm{padding:7px 10px;font-size:11.5px;border-radius:9px;}
+.btn[disabled]{opacity:0.35;pointer-events:none;}
+
+.icon-btn { background:transparent; border:none; color:var(--muted); cursor:pointer; padding:6px; display:inline-flex; align-items:center; justify-content:center; border-radius:8px; transition:all 0.2s ease; }
+.icon-btn:hover { background:rgba(255,255,255,0.1); color:var(--bone); }
+.icon-btn svg { width:16px; height:16px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+
+.pill{ font-family:var(--font-system);font-size:10px;font-weight:700;letter-spacing:0.6px; padding:3px 8px;border-radius:20px;display:inline-block;text-transform:uppercase; }
+.row{display:flex;align-items:center;}
+.row-between{display:flex;align-items:center;justify-content:space-between;}
+.gap-6{gap:6px;} .gap-8{gap:8px;} .gap-10{gap:10px;}
+.muted{color:var(--muted);} .small{font-size:11.5px;}
+.mt-10{margin-top:10px;} .mt-14{margin-top:14px;}
+
+.field{margin-bottom:16px;}
+.field label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:700;letter-spacing:0.5px; text-transform:uppercase;}
+.field input[type=text],.field input[type=number],.field input[type=date],.field select,.field textarea,
+.input, .shift-select, .realm-row input[type=text], .realm-row input[type=number], .num-input-sm {
+  width:100%;background:rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.15);border-radius:12px;
+  padding:12px 14px;color:#fff;font-size:14px;outline:none; transition: 0.3s; box-shadow: inset 0 2px 5px rgba(0,0,0,0.5);
+  color-scheme: dark;
+}
+.field input:focus,.field select:focus,.field textarea:focus,
+.input:focus, .shift-select:focus, .realm-row input:focus, .num-input-sm:focus { border-color:var(--cyan); box-shadow: 0 0 0 3px rgba(45,212,244,0.2), inset 0 2px 5px rgba(0,0,0,0.5); }
+.field textarea{resize:vertical;min-height:70px;}
+
+.form-row { display:flex; gap:10px; }
+.form-group { margin-bottom: 13px; }
+.form-group.half { flex:1; }
+.form-group label { display:block; font-size:11.5px; color:var(--muted); margin-bottom:5px; font-weight:600; letter-spacing:0.3px; }
+
+.stat-row{margin-bottom:12px;}
+.stat-row-top{display:flex;justify-content:space-between;font-family:var(--font-system);font-size:12.5px;margin-bottom:5px;}
+.stat-name{color:var(--bone);font-weight:600;letter-spacing:0.3px;}
+.stat-val{color:var(--muted);font-weight:700;}
+.stat-track{height:7px;border-radius:6px;background:rgba(255,255,255,0.06);overflow:hidden;}
+.stat-fill{height:100%;border-radius:6px;transition:width .5s ease;}
+.stat-group-label{font-family:var(--font-system);font-size:10.5px;color:var(--muted-2);letter-spacing:1.4px;text-transform:uppercase;margin:14px 0 8px;}
+
+.ring-wrap{position:relative;width:168px;height:168px;margin:6px auto 4px;}
+.ring-wrap svg{width:100%;height:100%;transform:rotate(-90deg);}
+.ring-track{fill:none;stroke:rgba(255,255,255,0.07);stroke-width:9;}
+.ring-fill{fill:none;stroke-width:9;stroke-linecap:round;transition:stroke-dashoffset 0.7s cubic-bezier(.2,.8,.2,1);}
+.ring-orbit{ position:absolute;inset:8px;border-radius:50%; border:1px dashed rgba(164,139,255,0.35); animation:orbitSpin 14s linear infinite; }
+@keyframes orbitSpin{to{transform:rotate(360deg);}}
+.ring-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.ring-level-label{font-family:var(--font-system);font-size:10px;color:var(--muted);letter-spacing:1.5px;}
+
+.title-banner {
+    display: inline-block;
+    padding: 6px 18px;
+    border-radius: 20px;
+    font-size: 13.5px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-top: 8px;
+    position: relative;
+    z-index: 5;
+    animation: floatBanner 3.5s ease-in-out infinite;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+@keyframes floatBanner { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+
+.realm-name{font-family:var(--font-display);text-align:center;font-size:16px;font-weight:600;letter-spacing:0.6px;margin-top:6px;}
+.spiritual-bar-wrap{margin-top:14px;}
+.spiritual-track{height:6px;border-radius:5px;background:rgba(255,255,255,0.06);overflow:hidden;}
+.spiritual-fill{
+  height:100%;border-radius:5px;
+  background: linear-gradient(90deg, #34D399, #2DD4F4, #A48BFF, #34D399);
+  background-size: 200% 200%;
+  animation: holoFlow 3s ease infinite;
+  transition:width .5s ease;
+}
+
+.life-score-row{display:flex;justify-content:space-around;text-align:center;margin-top:14px;}
+.life-score-item .num{font-family:var(--font-system);font-size:18px;font-weight:700;}
+.life-score-item .lbl{font-size:10px;color:var(--muted);letter-spacing:0.6px;text-transform:uppercase;margin-top:2px;}
+
+.quest-filters{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:14px;}
+.quest-filters::-webkit-scrollbar{display:none;}
+.chip{ flex:0 0 auto;font-family:var(--font-system);font-size:11.5px;font-weight:700;letter-spacing:0.4px; padding:7px 13px;border-radius:20px;border:1px solid var(--border);background:var(--surface);color:var(--muted);white-space:nowrap; cursor:pointer;}
+.chip.active{background:var(--arise);color:#fff;border-color:var(--arise);}
+
+.quest-card{ position:relative;border-radius:14px;padding:12px 12px 12px 16px;margin-bottom:10px; background:var(--surface);border:1px solid var(--border);overflow:hidden; }
+.quest-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;}
+.quest-card.t-daily::before{background:var(--arise);}
+.quest-card.t-weekly::before{background:var(--cyan);}
+.quest-card.t-monthly::before{background:var(--jade);}
+.quest-card.t-special::before{background:var(--orange);}
+.quest-card.t-legendary::before{background:linear-gradient(180deg,var(--gold),var(--orange));}
+.quest-card.t-custom::before{background:var(--muted-2);}
+.quest-card.status-done{opacity:0.55;}
+.quest-card.is-legendary{background:linear-gradient(110deg, rgba(240,185,59,0.07), rgba(124,92,255,0.05) 60%);}
+.quest-title-row{display:flex;justify-content:space-between;gap:8px;align-items:flex-start;}
+.quest-title{font-family:var(--font-body);font-weight:600;font-size:14px;line-height:1.3;}
+.quest-meta{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;align-items:center;}
+.quest-reward{font-family:var(--font-system);font-size:11px;color:var(--gold-soft);font-weight:700;white-space:nowrap;}
+.quest-stats{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px;}
+.stat-chip{font-size:9.5px;color:var(--muted);background:rgba(255,255,255,0.05);border-radius:8px;padding:2px 7px;letter-spacing:0.3px;}
+.quest-actions{display:flex;gap:6px;margin-top:10px;}
+.quest-notes{font-size:11.5px;color:var(--muted);margin-top:6px;line-height:1.4;}
+.quest-core-tag{font-size:9px;color:var(--jade);letter-spacing:0.5px;font-weight:700;}
+
+.ach-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+.ach-item{border-radius:12px;padding:10px;text-align:center;border:1px solid var(--border);background:var(--surface); transition: transform 0.3s, box-shadow 0.3s;}
+.ach-item.unlocked{background: linear-gradient(145deg, rgba(45,212,244,0.1), transparent); border-color: var(--cyan); box-shadow: inset 0 0 10px rgba(45,212,244,0.1);}
+.ach-icon{font-family:var(--font-display);font-size:24px;margin-bottom:4px; filter: drop-shadow(0 0 4px rgba(255,255,255,0.3));}
+.ach-label{font-size:11px;font-weight:600;line-height:1.3;}
+
+.title-item{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-radius:12px;border:1px solid var(--border);background:var(--surface);margin-bottom:8px; cursor:pointer;}
+.title-item.equipped{border-color:var(--arise-bright);background:rgba(124,92,255,0.08);}
+.title-item.locked{opacity:0.4;}
+.title-name{font-size:13.5px;font-weight:600;}
+.title-hint{font-size:10px;color:var(--muted);margin-top:2px;}
+
+.goal-card { transition: transform 0.3s, box-shadow 0.3s; position: relative; overflow: hidden; }
+.goal-card.status-done::after { content:''; position:absolute; inset:0; background:rgba(52,211,153,0.05); pointer-events:none; }
+
+.boss-card{text-align:center;padding:20px 14px;}
+.boss-name{font-family:var(--font-display);font-size:17px;margin-bottom:14px;}
+.boss-hp-track{height:20px;border-radius:10px;background:rgba(255,255,255,0.06);overflow:hidden;border:1px solid rgba(255,71,104,0.3);position:relative;}
+.boss-hp-fill{height:100%;background:linear-gradient(90deg,#7a0e22,var(--crimson));transition:width .6s ease;}
+.boss-hp-text{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--font-system);font-size:11px;font-weight:700;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,0.6);}
+.log-item{display:flex;justify-content:space-between;font-size:12px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05);}
+.log-amount{color:var(--jade);font-weight:700;font-family:var(--font-system);}
+
+.spirit-grid{display:grid;grid-template-columns:repeat(2, 1fr);gap:8px;}
+.spirit-btn{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px;text-align:center;color:var(--bone);font-size:12px;font-weight:600; display:flex; flex-direction:column; justify-content:space-between; min-height:80px; position:relative;}
+.spirit-btn small{display:block;color:var(--muted);font-size:9.5px;margin-top:2px;font-weight:400;}
+
+.shift-toggle{display:flex;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:4px;}
+.shift-opt{flex:1;text-align:center;padding:9px 0;border-radius:9px;font-family:var(--font-system);font-size:12.5px;font-weight:700;color:var(--muted);cursor:pointer;}
+.shift-opt.active{background:var(--arise);color:#fff;}
+
+.realm-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05);}
+.realm-row:last-child{border-bottom:none;}
+
+#modal-root{position:fixed;inset:0;z-index:50;pointer-events:none;}
+.modal-overlay{ position:absolute;inset:0;background:rgba(4,4,10,0.72);backdrop-filter:blur(3px); opacity:0;visibility:hidden;transition:opacity .2s;pointer-events:none; }
+.modal-overlay.open{opacity:1;visibility:visible;pointer-events:auto;}
+.modal-sheet{ position:absolute;left:0;right:0;bottom:0;max-width:480px;margin:0 auto; background:#13131F;border:1px solid var(--border-strong);border-radius:22px 22px 0 0; padding:18px 18px calc(20px + env(safe-area-inset-bottom)); transform:translateY(100%);transition:transform .28s cubic-bezier(.2,.8,.2,1); max-height:86vh;overflow-y:auto; }
+.modal-overlay.open .modal-sheet{transform:translateY(0);}
+.modal-handle{width:36px;height:4px;background:var(--muted-2);border-radius:3px;margin:0 auto 14px;}
+.modal-title{font-family:var(--font-display);font-size:17px;margin:0 0 14px;}
+.modal-actions{display:flex;gap:10px;margin-top:6px;}
+.modal-actions .btn{flex:1;}
+
+.fx-overlay{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;pointer-events:none;opacity:0;visibility:hidden;overflow:hidden;}
+.fx-overlay.active{opacity:1;visibility:visible;}
+.fx-flash{position:absolute;inset:0;background:radial-gradient(circle at 50% 45%, rgba(255,255,255,0.9), rgba(124,92,255,0.25) 40%, transparent 70%);}
+.fx-overlay.active .fx-flash{animation:flashIn 1.1s ease forwards;}
+@keyframes flashIn{0%{opacity:0;}12%{opacity:1;}100%{opacity:0;}}
+.fx-ring{position:absolute;border:2px solid rgba(164,139,255,0.7);border-radius:50%;width:60px;height:60px;}
+.fx-overlay.active .fx-ring{animation:shockwave 1.4s ease-out forwards;}
+@keyframes shockwave{0%{transform:scale(0.3);opacity:0.9;}100%{transform:scale(7);opacity:0;}}
+.fx-content{position:relative;text-align:center;padding:0 30px;}
+.fx-overlay.active .fx-content{animation:slamIn 0.6s cubic-bezier(.2,.8,.2,1) forwards;}
+@keyframes slamIn{0%{transform:scale(1.5) translateY(8px);opacity:0;filter:blur(10px);}65%{transform:scale(0.97);opacity:1;filter:blur(0);}100%{transform:scale(1);}}
+.fx-eyebrow{font-family:var(--font-system);font-size:12px;letter-spacing:4px;color:var(--arise-bright);text-transform:uppercase;margin-bottom:8px;}
+.fx-title{font-family:var(--font-display);font-size:30px;font-weight:700;color:#fff;text-shadow:0 0 30px rgba(164,139,255,0.8);}
+.fx-sub{font-family:var(--font-system);font-size:13px;color:var(--bone);margin-top:8px;letter-spacing:0.5px;}
+
+#toast-container{position:fixed;top:14px;left:0;right:0;z-index:70;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none;}
+.toast{font-family:var(--font-system);font-size:12.5px;font-weight:700;letter-spacing:0.3px;background:rgba(20,20,36,0.92);border:1px solid var(--border-strong);border-radius:30px;padding:8px 16px;color:var(--bone);box-shadow:0 6px 20px rgba(0,0,0,0.4);animation:toastInOut 2.6s ease forwards;}
+.toast.exp{color:var(--gold-soft);border-color:rgba(240,185,59,0.4);}
+.toast.bad{color:#ffb4c1;border-color:rgba(255,71,104,0.4);}
+.toast.ach{color:var(--cyan);border-color:rgba(45,212,244,0.4);}
+@keyframes toastInOut{0%{transform:translateY(-12px);opacity:0;} 10%{transform:translateY(0);opacity:1;} 85%{transform:translateY(0);opacity:1;} 100%{transform:translateY(-10px);opacity:0;}}
+
+.empty-state{text-align:center;padding:30px 14px;color:var(--muted);font-size:12.5px;}
+.empty-state .big{font-family:var(--font-display);font-size:14px;color:var(--bone);margin-bottom:5px;display:block;}
+
+.live-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--cyan); margin-right: 6px; animation: pulseOpacity 1.5s infinite; }
+@keyframes pulseOpacity { 0%{opacity:1;} 50%{opacity:0.3;} 100%{opacity:1;} }
+
+.sip-panel { border-radius:12px; background:rgba(255,255,255,0.02); border:1px solid var(--border); padding:10px; margin-bottom:8px; }
+.sip-panel .sip-title { font-weight:700; font-size:13px; margin-bottom:4px; display:flex; justify-content:space-between; align-items:center; }
+.sip-panel .sip-status { font-family:var(--font-system); font-weight:600; font-size:11.5px; }
+
+.habit-row { padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 10px; }
+.habit-title { font-size: 13.5px; font-weight: 600; color: var(--bone); }
+.habit-days { display: flex; justify-content: space-between; width: 100%; }
+.habit-day { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.habit-day-lbl { font-size: 9.5px; font-weight: 600; color: var(--muted); text-transform: uppercase; }
+.habit-day-lbl.today { color: var(--arise-bright); }
+.habit-dot { width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--border-strong); background: rgba(255,255,255,0.02); display: flex; align-items: center; justify-content: center; transition: all 0.2s; cursor: pointer; }
+.habit-dot.done { background: var(--jade); border-color: var(--jade); color: var(--void); box-shadow: 0 0 8px rgba(52,211,153,0.4); }
+.habit-dot svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 3; opacity: 0; transition: opacity 0.2s; }
+.habit-dot.done svg { opacity: 1; }
+
+.calendar-card { padding: 16px; border-color: rgba(45,212,244,0.3); background: linear-gradient(145deg, rgba(45,212,244,0.03), transparent); margin-bottom: 14px; }
+.cal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; font-family: var(--font-display); font-weight: 600; font-size: 16px; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; text-align: center; }
+.cal-day-name { font-size: 10.5px; color: var(--muted); text-transform: uppercase; font-weight: 700; margin-bottom: 6px; }
+.cal-cell { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-size: 13px; font-family: var(--font-system); font-weight: 700; border-radius: 8px; background: rgba(255,255,255,0.03); border: 1px solid transparent; color: var(--muted-2); transition: all 0.2s;}
+.cal-cell.empty { background: transparent; border: none; }
+.cal-cell.active-1 { background: rgba(52,211,153,0.15); color: var(--jade); border-color: rgba(52,211,153,0.3); }
+.cal-cell.active-2 { background: rgba(52,211,153,0.3); color: var(--jade); border-color: rgba(52,211,153,0.4); }
+.cal-cell.active-3 { background: rgba(52,211,153,0.5); color: #fff; border-color: rgba(52,211,153,0.8); }
+.cal-cell.today { border-color: var(--cyan); box-shadow: inset 0 0 8px rgba(45,212,244,0.2), 0 0 8px rgba(45,212,244,0.4); color: var(--cyan); }
+.cal-cell.missed { color: var(--crimson); text-decoration: line-through; background: rgba(255,71,104,0.1); }
+.cal-nav-btn { background: var(--surface); border: 1px solid var(--border); color: var(--bone); padding: 6px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+.cal-nav-btn:hover { background: var(--arise); border-color: var(--arise); color: #fff; }
+
+.mini-dot-row{display:flex;gap:5px;margin-top:8px;}
+.mini-dot{width:7px;height:7px;border-radius:50%;background:var(--muted-2);}
+.mini-dot.done{background:var(--jade);box-shadow:0 0 6px rgba(52,211,153,0.7);}
+
+.kanban-board { display: flex; gap: 14px; overflow-x: auto; padding-bottom: 12px; scroll-snap-type: x mandatory; }
+.kanban-col { min-width: 270px; background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 14px; padding: 12px; display: flex; flex-direction: column; scroll-snap-align: start; }
+.kanban-col-title { font-family: var(--font-display); font-size: 13.5px; margin-bottom: 12px; border-bottom: 1px solid var(--border-strong); padding-bottom: 8px; font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
+.kanban-cards { flex: 1; min-height: 200px; display: flex; flex-direction: column; gap: 10px; }
+.kanban-card { background: linear-gradient(145deg, rgba(255,255,255,0.05), rgba(0,0,0,0.5)); border: 1px solid var(--border-strong); border-left: 4px solid var(--cyan); padding: 12px; border-radius: 10px; color: var(--bone); cursor: grab; position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+.kanban-add-btn { margin-top: 12px; padding: 10px; background: rgba(255,255,255,0.03); border: 1px dashed var(--border-strong); color: var(--muted); border-radius: 8px; cursor: pointer; font-family: var(--font-system); font-weight: 700; letter-spacing: 1px;}
+
+.chart-container { position: relative; width: 100%; height: 200px; margin-top: 14px; }
+.commerce-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+.commerce-metric { background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 12px; padding: 14px; text-align: center; }
+.commerce-metric .lbl { font-family: var(--font-system); font-size: 11px; color: var(--muted); text-transform: uppercase; font-weight: 700; letter-spacing: 1px; }
+.commerce-metric .val { font-family: var(--font-display); font-size: 18px; font-weight: 800; color: var(--bone); margin-top: 6px; }
+.commerce-metric .val.highlight { color: var(--gold); text-shadow: 0 0 10px rgba(240,185,59,0.4); }
+
+.stats-table { width:100%; border-collapse:collapse; font-family:var(--font-system); font-size:0.85rem; }
+.stats-table th, .stats-table td { padding:0.4rem 0.6rem; border-bottom:1px solid var(--border); text-align:left; color:var(--bone); }
+.stats-table thead th { color:var(--gold); font-family:var(--font-head); font-size:0.75rem; border-bottom:1px solid var(--border-strong); }
+
+.todo-item { display:flex; align-items:flex-start; gap:10px; margin-bottom:8px; font-size:12.5px; line-height:1.4; padding:8px; border-radius:8px; background:rgba(255,255,255,0.02); border:1px solid var(--border); }
+.todo-item.done { opacity:0.6; text-decoration:line-through; }
+.eisenhower-grid { display:grid; grid-template-columns: 1fr 1fr; gap:0.75rem; }
+.quadrant { background:rgba(0,0,0,0.2); border:1px solid var(--border); border-radius:12px; padding:10px; display:flex; flex-direction:column; }
+.quadrant .q-header { font-family:var(--font-head); font-size:0.8rem; }
+.quadrant .q-desc { font-size:0.7rem; color:var(--muted); margin-bottom:0.5rem; }
+.todo-item-mini { display:flex; align-items:center; gap:0.4rem; padding:0.2rem 0; font-size:0.82rem; }
+.todo-empty-mini { font-size:0.7rem; color:var(--muted); text-align:center; padding:0.5rem 0; }
+
+.weekly-calendar { display:grid; grid-template-columns:repeat(7, 1fr); gap:0.3rem; margin:0.75rem 0; }
+.weekly-cal-cell { background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:6px; padding:0.4rem; cursor:pointer; font-size:0.72rem; text-align:center; transition:border-color 0.2s; }
+.weekly-cal-cell.today { border-color:var(--arise-bright); box-shadow:0 0 6px rgba(164,139,255,0.3); }
+.wc-day { font-family:var(--font-head); font-size:0.65rem; margin-bottom:0.2rem; text-transform:uppercase;}
+.wc-badge { font-size:0.7rem; font-weight:bold; }
+.time-block-mini { text-align:left; margin-top:0.3rem; font-size:0.65rem; border-top:1px dashed var(--border); padding-top:0.2rem; }
+.tb-time { color:var(--gold); display:block; }
+.tb-label { color:var(--bone); display:block; }
+
+.timeline-container { border-left: 2px solid var(--border-strong); margin-left: 10px; padding-left: 14px; padding-bottom: 5px; margin-top: 10px; }
+.timeline-item { position: relative; margin-bottom: 12px; }
+.timeline-item::before { content:''; position: absolute; left: -21px; top: 3px; width: 12px; height: 12px; border-radius: 50%; background: var(--cyan); border: 2px solid var(--void); box-shadow: 0 0 5px var(--cyan); }
+.timeline-item .time { font-family: var(--font-system); font-size: 12px; color: var(--arise-bright); font-weight: 700; margin-bottom: 2px; letter-spacing: 0.5px; }
+
+.settings-modal { max-height:90vh; overflow-y:auto; width:min(600px,95vw); }
+.settings-section { border: 1px solid var(--border); border-radius:8px; margin-bottom:0.5rem; }
+.settings-section summary { padding:0.75rem 1rem; cursor:pointer; font-family:var(--font-head); font-size:0.9rem; color:var(--arise-bright); }
+.settings-body { padding:0.75rem 1rem; }
+.toggle-row { display:flex; justify-content:space-between; align-items:center; padding:0.3rem 0; font-size:0.85rem;}
+.settings-btn-row { display:flex; flex-wrap:wrap; gap:0.5rem; margin:0.5rem 0; }
+.settings-divider { font-size:0.75rem; color:var(--muted); border-top:1px solid var(--border); padding-top:0.5rem; margin-top:0.75rem; }
+.btn-group { display:flex; gap:0.2rem; margin-bottom:0.5rem;}
+.btn-group .btn-secondary { flex:1; font-size:0.75rem; padding:0.4rem; }
+.btn-group .btn-secondary.active { background:var(--arise); color:#fff; border-color:var(--arise); }
+
+.realm-step-header { font-family:var(--font-head); font-size:0.8rem; font-weight:700; text-transform:uppercase; color:var(--arise-bright); border-bottom:1px dashed var(--border); padding-bottom:4px; margin:14px 0 8px; }
+.realm-row.active { background:rgba(124,92,255,0.15); border:1px solid var(--arise-bright); border-radius:6px; padding:4px 8px; }
+.realm-row.done { opacity:0.6; }
+.realm-name-en { flex:1; font-size:12px; color:var(--bone); }
+.realm-req { font-family:var(--font-mono); font-size:11px; color:var(--muted); }
+</style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+
+<div class="screen">
+  <header class="app-header">
+    <div class="wordmark-row">
+      <span class="wordmark holo-text" style="font-size:18px; font-weight:800; font-family:var(--font-display); letter-spacing:2px; color:#fff;">MYSISTEM</span>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span class="day-counter" id="day-counter">DAY 1</span>
+        <button class="icon-btn" onclick="openModal('modal-settings')" style="color:var(--muted); padding:0;"><svg viewBox="0 0 24 24" style="width:18px;height:18px; fill:none; stroke:currentColor; stroke-width:2;"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg></button>
+      </div>
+    </div>
+    <div id="recovery-banner-slot"></div>
+  </header>
+
+  <main class="tab-content" id="main"></main>
+
+  <nav class="bottom-nav" id="bottom-nav">
+    <button class="nav-btn" data-tab="home" onclick="setTab('home')"><svg viewBox="0 0 24 24"><path d="M4 11.5 12 4l8 7.5"/><path d="M6 10v9.5h12V10"/></svg><span>Home</span></button>
+    <button class="nav-btn" data-tab="quests" onclick="setTab('quests')"><svg viewBox="0 0 24 24"><path d="M7 3h10v18l-5-3-5 3z"/></svg><span>Quest</span></button>
+    <button class="nav-btn" data-tab="goals" onclick="setTab('goals')"><svg viewBox="0 0 24 24"><path d="M5 3v18"/><path d="M5 4h12l-3 4 3 4H5"/></svg><span>Goals</span></button>
+    <button class="nav-btn" data-tab="project" onclick="setTab('project')"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg><span>Project</span></button>
+    <button class="nav-btn" data-tab="boss" onclick="setTab('boss')"><svg viewBox="0 0 24 24"><path d="M12 1v22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg><span>Finansial</span></button>
+    <button class="nav-btn" data-tab="enlight" onclick="setTab('enlight')"><svg viewBox="0 0 24 24"><path d="M12 19V5"/><path d="M5 12l7-7 7 7"/></svg><span>Enlight</span></button>
+    <button class="nav-btn" data-tab="stats" onclick="setTab('stats')"><svg viewBox="0 0 24 24"><path d="M4 20V12M10 20V5M16 20v-8"/><path d="M2 21h20"/></svg><span>Stats</span></button>
+    <button class="nav-btn" data-tab="profile" onclick="setTab('profile')"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg><span>Profile</span></button>
+  </nav>
+</div>
+
+<div id="modal-root"></div>
+<div id="fx-breakthrough" class="fx-overlay">
+  <div class="fx-ring"></div><div class="fx-ring r2"></div><div class="fx-ring r3"></div>
+  <div class="fx-flash"></div>
+  <div class="fx-content">
+    <div class="fx-eyebrow">Realm Breakthrough</div>
+    <div class="fx-title holo-text" id="fx-breakthrough-title">—</div>
+    <div class="fx-sub">Kekuatan batinmu meningkat drastis</div>
+  </div>
+</div>
+<div id="fx-boss" class="fx-overlay boss">
+  <div class="fx-ring"></div><div class="fx-ring r2"></div><div class="fx-ring r3"></div>
+  <div class="fx-flash"></div>
+  <div class="fx-content">
+    <div class="fx-eyebrow">Target Achieved</div>
+    <div class="fx-title" id="fx-boss-title" style="color:var(--gold); font-family:var(--font-display);">—</div>
+    <div class="fx-sub">Pencapaian luar biasa. Tetapkan tujuan baru!</div>
+  </div>
+</div>
+<div id="fx-levelup" class="fx-overlay">
+  <div class="fx-ring"></div><div class="fx-ring r2"></div>
+  <div class="fx-flash"></div>
+  <div class="fx-content">
+    <div class="fx-eyebrow">Level Up</div>
+    <div class="fx-title holo-text" id="fx-levelup-title" style="font-family:var(--font-display);">—</div>
+  </div>
+</div>
+<div id="toast-container"></div>
+
+<script>
+let state = null; let saveTimer = null; let daoChart = null;
+
+const canvas = document.getElementById('bg-canvas');
+const ctx = canvas.getContext('2d');
+let particles = [];
+function initCanvas() {
+    canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+    particles = [];
+    for(let i=0; i<45; i++) {
+        particles.push({x: Math.random()*canvas.width, y: Math.random()*canvas.height, vx: (Math.random()-0.5)*0.3, vy: (Math.random()-0.5)*0.3, size: Math.random()*1.5});
+    }
+}
+function drawCanvas() {
+    if(!state || state.settings?.showBackgroundAnim !== false) {
+        ctx.clearRect(0,0,canvas.width, canvas.height);
+        ctx.fillStyle = 'rgba(255,255,255,0.4)';
+        ctx.strokeStyle = 'rgba(45, 212, 244, 0.15)';
+        for(let i=0; i<particles.length; i++) {
+            let p = particles[i];
+            p.x += p.vx; p.y += p.vy;
+            if(p.x < 0 || p.x > canvas.width) p.vx *= -1;
+            if(p.y < 0 || p.y > canvas.height) p.vy *= -1;
+            ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI*2); ctx.fill();
+            for(let j=i+1; j<particles.length; j++) {
+                let p2 = particles[j];
+                let dist = Math.hypot(p.x-p2.x, p.y-p2.y);
+                if(dist < 90) { ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p2.x, p2.y); ctx.stroke(); }
+            }
+        }
+    } else {
+        ctx.clearRect(0,0,canvas.width, canvas.height);
+    }
+    requestAnimationFrame(drawCanvas);
+}
+initCanvas(); drawCanvas(); window.addEventListener('resize', initCanvas);
+
+function todayStr(){ return new Date().toLocaleDateString('en-CA'); }
+function weekKey(d){ const date=new Date(d); const day=(date.getDay()+6)%7; date.setDate(date.getDate()-day); return date.toLocaleDateString('en-CA'); }
+function monthKey(d){ return new Date(d).toLocaleDateString('en-CA').slice(0,7); }
+function diffDays(a,b){ const A=new Date(a+'T00:00:00'), B=new Date(b+'T00:00:00'); return Math.round((B-A)/86400000); }
+function formatRupiah(n){ return 'Rp'+Math.round(n).toLocaleString('id-ID'); }
+function escapeHtml(str){ return str===undefined||str===null?'':String(str).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function escapeAttr(str){ return escapeHtml(str); }
+function uid(prefix){ return (prefix||'id')+'_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,7); }
+
+const AudioEngine = {
+  ctx: null,
+  init() { 
+      if(!this.ctx) { const AudioContext = window.AudioContext || window.webkitAudioContext; this.ctx = new AudioContext(); } 
+      if(this.ctx.state === 'suspended') this.ctx.resume(); 
+  },
+  play(freqs, type, dur, vol = 0.05) {
+    if(!state || state.settings?.soundEnabled===false) return;
+    this.init();
+    freqs.forEach((f, i) => {
+      const o = this.ctx.createOscillator(), g = this.ctx.createGain();
+      o.type = type; o.frequency.value = f;
+      g.gain.setValueAtTime(vol, this.ctx.currentTime + i*dur);
+      g.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + i*dur + dur);
+      o.connect(g); g.connect(this.ctx.destination);
+      o.start(this.ctx.currentTime + i*dur); o.stop(this.ctx.currentTime + i*dur + dur);
+    });
+  }
+};
+const SFX = {
+    click() { AudioEngine.play([600], 'sine', 0.05, 0.02); },
+    success() { AudioEngine.play([400, 600, 800], 'sine', 0.1, 0.05); },
+    questComplete() { AudioEngine.play([600, 800], 'sine', 0.1, 0.05); },
+    victory() { AudioEngine.play([523.25, 659.25, 783.99, 1046.50], 'square', 0.15, 0.05); }, // Triumphant Arpeggio
+    levelUp() { AudioEngine.play([300, 400, 500, 600, 800], 'square', 0.15, 0.05); },
+    error() { AudioEngine.play([200, 150], 'sawtooth', 0.15, 0.05); },
+    coin() { AudioEngine.play([1200], 'sine', 0.1, 0.03); },
+    breakthrough() { AudioEngine.play([50], 'sawtooth', 1.0, 0.1); setTimeout(() => AudioEngine.play([800, 1200], 'sine', 0.5, 0.05), 300); }
+};
+
+function createRipple(e) {
+    const r = document.createElement('div'); r.className = 'click-ripple'; r.style.left = e.clientX + 'px'; r.style.top = e.clientY + 'px'; r.style.width = '20px'; r.style.height = '20px';
+    document.body.appendChild(r); setTimeout(() => r.remove(), 500);
+}
+document.addEventListener('click', (e) => {
+   if(e.target.closest('button') || e.target.closest('.nav-btn') || e.target.closest('.kanban-card') || e.target.closest('.sip-panel') || e.target.closest('.chip') || e.target.closest('.check-item') || e.target.closest('select')) { SFX.click(); }
+   createRipple(e);
+});
+
+const STORAGE_KEY = 'jian-ascension-state-vfinal-updated';
+
+const STAT_META = {
+  strength:{label:'Strength',group:'Body',color:'var(--jade)'}, health:{label:'Health',group:'Body',color:'var(--jade)'},
+  discipline:{label:'Discipline',group:'Soul',color:'var(--gold)'}, knowledge:{label:'Knowledge',group:'Mind',color:'var(--cyan)'},
+  communication:{label:'Communication',group:'Social',color:'var(--arise-bright)'}, finance:{label:'Finance',group:'Finansial',color:'var(--gold)'}, 
+  focus:{label:'Focus',group:'Mind',color:'var(--cyan)'}, spirituality:{label:'Spirituality',group:'Soul',color:'var(--gold)'},
+  leadership:{label:'Leadership',group:'Social',color:'var(--arise-bright)'}, confidence:{label:'Confidence',group:'Social',color:'var(--arise-bright)'},
+  consistency:{label:'Consistency',group:'Soul',color:'var(--gold)'},
+};
+const STAT_GROUPS = ['Body','Mind','Social','Soul','Finansial','Custom'];
+const TYPE_META = { daily:{label:'Harian',cls:'t-daily'}, weekly:{label:'Mingguan',cls:'t-weekly'}, monthly:{label:'Bulanan',cls:'t-monthly'}, special:{label:'Spesial',cls:'t-special'}, legendary:{label:'Legendary',cls:'t-legendary'}, custom:{label:'Custom',cls:'t-custom'}, };
+const DIFFICULTY_EXP = {easy:10, normal:25, hard:50, epic:120};
+
+function getGroupIcon(group) { const iconMap = {Body:'💪', Mind:'🧠', Social:'💬', Soul:'🌌', Custom:'✨', Finansial:'💰'}; return iconMap[group] || '✨'; }
+function statDef(key){ return STAT_META[key] || (state.customStats||[]).find(s=>s.key===key); }
+function allStatDefsGrouped(){ const groups = {}; Object.keys(STAT_META).forEach(k=>{ const d=STAT_META[k]; (groups[d.group]=groups[d.group]||[]).push(k); }); (state.customStats||[]).forEach(cs=>{ (groups[cs.group] = groups[cs.group]||[]).push(cs.key); }); return groups; }
+function allStatKeys(){ return Object.keys(STAT_META).concat((state.customStats||[]).map(s=>s.key)); }
+
+const DEFAULT_REALMS = [
+  { name:'Qi Condensation', nameID:'Qi Condensation', desc:'Gathering Qi into the body.', step:1, reqEnergy:500 },
+  { name:'Foundation Establishment', nameID:'Foundation Establishment', desc:'Building a solid spiritual foundation.', step:1, reqEnergy:1500 },
+  { name:'Core Formation', nameID:'Core Formation', desc:'Forming the Golden Core.', step:1, reqEnergy:3500 },
+  { name:'Nascent Soul', nameID:'Nascent Soul', desc:'Birthing the Nascent Soul.', step:1, reqEnergy:7000 },
+  { name:'Soul Formation', nameID:'Soul Formation', desc:'Strengthening the soul to exist independently.', step:1, reqEnergy:12000 },
+  { name:'Soul Transformation', nameID:'Soul Transformation', desc:'Transforming the soul, transcending mortality.', step:1, reqEnergy:20000 },
+  { name:'Ascendant', nameID:'Ascendant', desc:'Peak of the First Step.', step:1, reqEnergy:30000 },
+  { name:'Illusory Yin', nameID:'Illusory Yin', desc:'Mastering illusory Yin energy.', step:2, reqEnergy:45000 },
+  { name:'Corporeal Yang', nameID:'Corporeal Yang', desc:'Manifesting physical Yang energy.', step:2, reqEnergy:65000 },
+  { name:'Nirvana Scryer', nameID:'Nirvana Scryer', desc:'Peering into Nirvana.', step:2, reqEnergy:90000 },
+  { name:'Nirvana Cleanser', nameID:'Nirvana Cleanser', desc:'Cleansing the self.', step:2, reqEnergy:120000 },
+  { name:'Nirvana Shatterer', nameID:'Nirvana Shatterer', desc:'Shattering limitations.', step:2, reqEnergy:160000 },
+  { name:'Void Nirvana', nameID:'Void Nirvana', desc:'Merging Nirvana with the Void.', step:3, reqEnergy:210000 },
+  { name:'Spirit Void', nameID:'Spirit Void', desc:'The spirit assimilates into the Void.', step:3, reqEnergy:270000 },
+  { name:'Arcane Void', nameID:'Arcane Void', desc:'Grasping arcane laws.', step:3, reqEnergy:340000 },
+  { name:'Void Tribulant', nameID:'Void Tribulant', desc:'Facing the ultimate tribulation.', step:3, reqEnergy:420000 },
+  { name:'Heaven Trampling', nameID:'Heaven Trampling', desc:'Stepping over the Heavens.', step:4, reqEnergy:500000, bridges: 9 }
+];
+
+const REALM_STEPS = { 1: { label:'First Step', realmID:'Mortal Realm', color:'var(--muted)' }, 2: { label:'Second Step', realmID:'Nirvana Realm', color:'var(--arise)' }, 3: { label:'Third Step', realmID:'Void Realm', color:'var(--cyan)' }, 4: { label:'Fourth Step', realmID:'Heaven Trampling', color:'var(--gold)' }, };
+function realmStep(realmIndex){ const r = state.realms[realmIndex]; return r ? r.step : 1; }
+function realmStepInfo(step){ return REALM_STEPS[step] || REALM_STEPS[1]; }
+function currentRealmObj(){ return state.realms[state.character.realmIndex] || state.realms[0]; }
+function isHeavenTrampling(){ return state.character.realmIndex === state.realms.length - 1 && currentRealmObj().bridges != null; }
+
+function getDynamicRealmInfo(c) {
+    const lvl = c.level || 1;
+    if (lvl <= 15) {
+        return {
+            nameID: 'Qi Condensation ' + lvl,
+            subName: '',
+            stepInfo: { label: 'First Step', realmID: 'Mortal Realm', color: 'var(--muted)' },
+            reqEnergyText: 'Naik level untuk menerobos'
+        };
+    } else if (lvl <= 19) {
+        let sub = 'Awal';
+        if(lvl === 17) sub = 'Menengah';
+        if(lvl === 18) sub = 'Akhir';
+        if(lvl === 19) sub = 'Puncak';
+        return {
+            nameID: 'Foundation Establishment',
+            subName: sub,
+            stepInfo: { label: 'First Step', realmID: 'Mortal Realm', color: 'var(--muted)' },
+            reqEnergyText: 'Naik level untuk menerobos'
+        };
+    }
+    
+    // Dari Level 20 ke atas, mengikuti indeks Energy. Sinkronisasi jika ketinggalan.
+    let idx = Math.max(2, c.realmIndex || 0); 
+    const r = state.realms[idx] || state.realms[state.realms.length-1];
+    const nextR = state.realms[idx+1];
+    let realmProg = c.realmEnergy / (nextR ? nextR.reqEnergy : 1);
+    let subName = "Awal";
+    if(realmProg >= 0.75) subName = "Puncak";
+    else if(realmProg >= 0.50) subName = "Akhir";
+    else if(realmProg >= 0.25) subName = "Tengah";
+
+    return {
+        nameID: r.nameID,
+        subName: subName,
+        stepInfo: realmStepInfo(r.step),
+        reqEnergyText: nextR ? (nextR.reqEnergy - c.realmEnergy) + ' Energy ke ' + nextR.nameID : 'Realm Tertinggi'
+    };
+}
+
+
+const SOUL_RANKS = [
+  { min:1, label:'Soul Scholar', labelID:'Pelajar Jiwa', color:'var(--muted)' }, { min:11, label:'Soul Master', labelID:'Guru Jiwa', color:'var(--muted)' },
+  { min:21, label:'Soul Grandmaster',labelID:'Mahaguru Jiwa', color:'var(--arise)' }, { min:31, label:'Soul Elder', labelID:'Sesepuh Jiwa', color:'var(--arise)' },
+  { min:41, label:'Soul Ancestor', labelID:'Leluhur Jiwa', color:'var(--cyan)' }, { min:51, label:'Soul King', labelID:'Raja Jiwa', color:'var(--cyan)' },
+  { min:61, label:'Soul Emperor', labelID:'Kaisar Jiwa', color:'var(--gold)' }, { min:71, label:'Soul Saint', labelID:'Santo Jiwa', color:'var(--gold)' },
+  { min:81, label:'Soul Douluo', labelID:'Jiwa Douluo', color:'var(--arise-bright)' }, { min:90, label:'Titled Douluo', labelID:'Douluo Bergelar', color:'var(--arise-bright)' }, { min:100, label:'God Realm', labelID:'Alam Dewa', color:'var(--gold)' },
+];
+function soulRankFor(level){ let rank = SOUL_RANKS[0]; for(const r of SOUL_RANKS){ if(level >= r.min) rank = r; } return rank; }
+
+const SPIRITUAL_ACTIONS = [
+  {key:'subuh', label:'Subuh', exp:10, icon:'🌅'}, {key:'dzuhur', label:'Dzuhur', exp:10, icon:'☀️'},
+  {key:'ashar', label:'Ashar', exp:10, icon:'⛅'}, {key:'maghrib',label:'Maghrib', exp:10, icon:'🌇'}, {key:'isya', label:'Isya', exp:10, icon:'🌙'}
+];
+
+const ACHIEVEMENT_DEFS = [
+  {id:'komisi1', icon:'＄', label:'First Commission', hint:'Catat pemasukan pertamamu', check:s=>(s.character.lifetimeIncome||0)>0},
+  {id:'income10jt', icon:'¥10', label:'First 10 Million', hint:'Total pemasukan ≥ Rp10.000.000', check:s=>(s.character.lifetimeIncome||0)>=10000000},
+  {id:'income100jt', icon:'¥100', label:'First 100 Million', hint:'Total pemasukan ≥ Rp100.000.000', check:s=>(s.character.lifetimeIncome||0)>=100000000, grantsTitle:'Wealth Core Lord'},
+  {id:'streak7', icon:'🔥', label:'7 Days Streak', hint:'Streak harian ≥ 7 hari', check:s=>(s.character.longestStreak||0)>=7, grantsTitle:'The Disciplined'},
+  {id:'streak30', icon:'🔥', label:'30 Days Streak', hint:'Streak harian ≥ 30 hari', check:s=>(s.character.longestStreak||0)>=30},
+  {id:'streak100', icon:'🐉', label:'100 Days Streak', hint:'Streak harian ≥ 100 hari', check:s=>(s.character.longestStreak||0)>=100, grantsTitle:'Dragon Ascendant'},
+  {id:'level10', icon:'10', label:'Level 10 Reached', hint:'Capai character level 10', check:s=>(s.character.level||1)>=10},
+  {id:'level50', icon:'50', label:'Demigod (Level 50)', hint:'Capai character level 50', check:s=>(s.character.level||1)>=50, grantsTitle:'Ancient God'},
+  {id:'realm3', icon:'⛰', label:'Foundation Established', hint:'Capai Realm ke-3', check:s=>(s.character.realmIndex||0)>=2, grantsTitle:'Realm Walker'},
+  {id:'realm4', icon:'🌌', label:'Nascent Soul', hint:'Mencapai Realm Nascent Soul', check:s=>(s.character.realmIndex||0)>=3},
+  {id:'boss1', icon:'☠', label:'First Target Reached', hint:'Kalahkan 1 Boss target', check:s=>(s.character.bossesDefeated||0)>=1},
+  {id:'boss3', icon:'👑', label:'Target Conqueror', hint:'Kalahkan 3 Boss target', check:s=>(s.character.bossesDefeated||0)>=3, grantsTitle:'Karma Lord'},
+  {id:'boss5', icon:'👑', label:'Target Sovereign', hint:'Kalahkan 5 Boss target', check:s=>(s.character.bossesDefeated||0)>=5},
+  {id:'goal1', icon:'◎', label:'First Goal Completed', hint:'Selesaikan 1 goal', check:s=>(s.character.goalsCompleted||0)>=1},
+  {id:'knowledge5', icon:'📚', label:'Dao Scholar', hint:'Selesaikan 5 materi pengetahuan', check:s=>(s.kanban?.cards||[]).filter(c=>c.col==='selesai').length>=5, grantsTitle:'Dao Scholar'},
+  {id:'sedekah1m', icon:'🌙', label:'Generous Deity', hint:'Total sedekah ≥ Rp 1.000.000', check:s=>(s.sedekah?.totalLifetime||0)>=1000000},
+  
+  // Epic Achievements
+  {id:'spirit_severing', icon:'🗡️', label:'Spirit Severing', hint:'Hapus 1 kebiasaan buruk', check:s=>s.habits.length>=1, grantsTitle:'Spirit Severer'},
+  {id:'mortal_arc', icon:'🚶‍♂️', label:'Mortal Arc', hint:'Selesaikan 10 skill dasar', check:s=>(s.kanban?.cards||[]).filter(c=>c.col==='selesai').length>=10, grantsTitle:'Mortal Cultivator'},
+  {id:'slaughter_clone', icon:'👥', label:'Slaughter Clone', hint:'Ciptakan 1 passive income', check:s=>(s.stats.finance||0)>=10, grantsTitle:'Lord of Clones'},
+  {id:'dao_thunder', icon:'⚡', label:'Dao of Thunder', hint:'Selesaikan 5 task prioritas tinggi dalam 24 jam', check:s=>(s.meta.completedTodayCount||0)>=5, grantsTitle:'Thunder Sovereign'},
+  {id:'immortal_cave', icon:'🏔️', label:'Immortal Cave', hint:'100% bebas distraksi', check:s=>(s.stats.focus||0)>=20},
+  {id:'heaven_sundering', icon:'🌌', label:'Heaven Sundering', hint:'Tembus rekor pemasukan', check:s=>(s.character.lifetimeIncome||0)>=20000000},
+  {id:'firm_dao_heart', icon:'🧘‍♂️', label:'Firm Dao Heart', hint:'30 hari tanpa mengeluh', check:s=>(s.character.longestStreak||0)>=30, grantsTitle:'Unshakable Heart'},
+  {id:'blood_ancestor', icon:'🩸', label:'Blood Ancestor', hint:'Deep Work 4 jam tanpa jeda', check:s=>(s.stats.focus||0)>=50},
+  {id:'ancient_scroll', icon:'📜', label:'Ancient Scroll', hint:'Habiskan 5 buku/course', check:s=>(s.kanban?.cards||[]).filter(c=>c.col==='selesai').length>=5},
+  {id:'suzaku_mark', icon:'🔥', label:'Suzaku\'s Mark', hint:'150 hari streak', check:s=>(s.character.longestStreak||0)>=150, grantsTitle:'Suzaku Lord'},
+  {id:'heaven_trampler_ach', icon:'👑', label:'Heaven Trampler', hint:'Kalahkan 15 Target Boss', check:s=>(s.character.bossesDefeated||0)>=15, grantsTitle:'Heaven Trampler'},
+  {id:'defying_sov', icon:'🛡️', label:'Defying Sovereign', hint:'Tabungan darurat 1 tahun', check:s=>(s.character.lifetimeIncome||0)>=50000000, grantsTitle:'Defying Sovereign'},
+  {id:'heaven_defying_bead', icon:'🔮', label:'Heaven Defying Bead', hint:'Tidak sentuh tabungan 6 bulan', check:s=>(s.stats.discipline||0)>=50},
+  {id:'ji_realm', icon:'⚡', label:'Ji Realm', hint:'100% task 14 hari beruntun', check:s=>(s.character.longestStreak||0)>=14, grantsTitle:'Ji Realm Master'},
+  {id:'slaughter_aura', icon:'🩸', label:'Slaughter Aura', hint:'Tolak 50 godaan', check:s=>(s.stats.discipline||0)>=100},
+  {id:'life_death_domain', icon:'⚖️', label:'Life & Death Domain', hint:'Bangkit dari bulan krisis', check:s=>(s.stats.finance||0)>=50, grantsTitle:'Fate Defier'},
+  {id:'karma_thread', icon:'🧶', label:'Karma Thread', hint:'Sedekah ke 10 tempat/orang berbeda', check:s=>(s.sedekah?.entries||[]).length>=10},
+  {id:'dream_dao', icon:'☁️', label:'Dream Dao', hint:'Selesaikan 1 target jangka panjang', check:s=>(s.goals||[]).filter(g=>g.status==='done').length>=1},
+  {id:'true_false_domain', icon:'🎭', label:'True & False Domain', hint:'Rutin evaluasi pengeluaran', check:s=>(s.stats.finance||0)>=30, grantsTitle:'True & False Lord'},
+  {id:'teng_annihilation', icon:'⚔️', label:'Teng Annihilation', hint:'Lunasi hutang/project berat', check:s=>(s.goals||[]).filter(g=>g.status==='done').length>=3},
+  {id:'defying_will', icon:'🌌', label:'Defying Will', hint:'Pertahankan streak saat sakit', check:s=>(s.stats.health||0)>=20},
+  {id:'all_seer', icon:'👁️', label:'All-Seer Defeated', hint:'Capai target mustahil', check:s=>(s.character.lifetimeIncome||0)>=100000000, grantsTitle:'All-Seer\'s Nightmare'},
+  {id:'ancient_god_body', icon:'🌟', label:'Ancient God Body', hint:'Olahraga 30 hari', check:s=>(s.stats.health||0)>=30, grantsTitle:'Royal Ancient God'},
+  {id:'defying_mortal', icon:'🏋️', label:'Defying Mortal', hint:'100 Hard Tasks', check:s=>(s.meta.completedTodayCount||0)>=100, grantsTitle:'Defying Mortal'},
+  {id:'slaughter_fiend', icon:'🪓', label:'Slaughter Fiend', hint:'30 hari mode grinding', check:s=>(s.character.longestStreak||0)>=30, grantsTitle:'Slaughter Fiend'},
+];
+
+const TITLE_HINTS = { 
+    'The Beginner':'Gelar awal petualang', 'The Disciplined':'Raih 7 hari beruntun', 'Realm Walker':'Capai Foundation Establishment', 'Dao Scholar':'Menguasai 5 Kitab Pengetahuan', 'Wealth Core Lord': 'Mencapai kekayaan 100 Juta', 'Karma Lord':'Catatan uang sempurna tanpa bocor', 'Dragon Ascendant': 'Mencapai 100 Hari Streak', 'Ancient God':'Bawaan level 50+ kultivasi',
+    'Mortal Cultivator':'Mampu menahan ego dan konsisten belajar fundamental', 'Unshakable Heart':'Emosi stabil dalam krisis (30 Hari)', 'Thunder Sovereign':'Kecepatan eksekusi tugas (5 High Priority)', 'Lord of Clones':'Multiple streams of income', 'Spirit Severer':'Membuang kebiasaan/pengeluaran tak perlu', 'Suzaku Lord':'Mencapai Streak 150', 'Heaven Trampler':'Mengalahkan 15 Boss Target', 'Defying Sovereign':'Tabungan 1 Tahun', 'Ji Realm Master':'Selesai sebelum deadline 14 Hari', 'Slaughter Fiend':'30 hari mode grinding', 'Fate Defier':'Bangkit dari bangkrut', 'True & False Lord':'Bertahan 1 tahun kebutuhan', 'Royal Ancient God':'Target fisik maksimal', 'All-Seer\'s Nightmare':'Capai target mustahil', 'Defying Mortal': '100 Hard Tasks terselesaikan'
+};
+
+function getTitleStyle(title) {
+    let base = 'padding: 6px 18px; border-radius: 20px; font-size: 13.5px; letter-spacing: 1.5px; text-transform: uppercase; margin-top: 8px; position: relative; z-index: 5; text-align: center; transition: all 0.3s ease; ';
+
+    // Mythic & Highest Tier
+    if(title === 'All-Seer\'s Nightmare') return base + 'background:linear-gradient(90deg, #111, #ff0044); color:#fff; text-shadow:0 0 10px #ff0044; border:1px solid #ff0044; font-family: var(--font-display); font-weight:900; animation: floatBanner 3s ease-in-out infinite;';
+    if(title === 'Royal Ancient God') return base + 'background:linear-gradient(90deg, #ffd700, #ff8c00); color:#000; font-weight:900; border:none; box-shadow: 0 0 15px rgba(255,215,0,0.6); font-family: var(--font-display); text-shadow: 0 1px 2px rgba(255,255,255,0.8);';
+    if(title === 'Suzaku Lord') return base + 'background:linear-gradient(90deg, #ff4768, #ff8a3d); color:#fff; border:none; box-shadow: 0 0 15px rgba(255,71,104,0.6); font-family: var(--font-display); font-weight:800;';
+    
+    // Legendary
+    if(title === 'Heaven Trampler' || title === 'Defying Sovereign' || title === 'Dragon Ascendant') return base + 'background:linear-gradient(90deg, var(--gold), var(--orange)); color:#1a1206; font-weight:800; font-family: var(--font-display); box-shadow: 0 0 10px rgba(240,185,59,0.4);';
+    if(title === 'Ji Realm Master' || title === 'Thunder Sovereign') return base + 'background:linear-gradient(90deg, var(--cyan), var(--arise-bright)); color:#0a0a14; font-weight:800; border:none; font-family: var(--font-display); box-shadow: 0 0 10px rgba(45,212,244,0.4);';
+    if(title === 'Fate Defier' || title === 'Karma Lord' || title === 'True & False Lord') return base + 'background:linear-gradient(90deg, var(--jade), var(--cyan)); color:#0a0a14; font-weight:800; border:none; font-family: var(--font-display);';
+    
+    // Epic / Rare
+    if(title === 'Dao Scholar' || title === 'Wealth Core Lord' || title === 'Realm Walker' || title === 'Mortal Cultivator') return base + 'background:rgba(124,92,255,0.15); color:var(--arise-bright); border: 1px solid rgba(124,92,255,0.5); font-family: var(--font-display); font-weight:700;';
+
+    // Common/Basic
+    return base + 'color:var(--muted); background:rgba(255,255,255,0.05); border: 1px solid var(--border-strong); font-family: var(--font-system); font-weight:600;';
+}
+
+const DEFAULT_SCHEDULE = {
+  pagi: [ {time:'03:00–03:05', label:'Matikan alarm, minum air'}, {time:'03:05–03:20', label:'Baca buku & review target'}, {time:'03:20–03:40', label:'Latihan public speaking'}, {time:'03:40–04:00', label:'Olahraga & Bela diri'}, {time:'04:00–04:30', label:'Spiritual & Meditasi'}, {time:'04:30–05:30', label:'Fokus project pribadi'}, {time:'05:30–06:00', label:'Persiapan pagi & Mandi'}, {time:'06:00–07:00', label:'Berangkat aktivitas'}, {time:'07:00–18:00', label:'⚙️ SHIFT UTAMA'}, {time:'18:00–19:00', label:'Istirahat'}, {time:'19:00–21:00', label:'Evaluasi & Belajar'}, {time:'21:00–22:00', label:'Riset besok'}, {time:'22:00–03:00', label:'Tidur'} ],
+  siang: [ {time:'05:00–06:00', label:'Bangun, Spiritual, Olahraga'}, {time:'06:00–08:00', label:'Project Pribadi'}, {time:'08:00–11:00', label:'Fokus Bisnis/Belajar'}, {time:'11:00–12:00', label:'Persiapan & Istirahat'}, {time:'12:00–13:00', label:'Berangkat'}, {time:'13:00–23:00', label:'⚙️ SHIFT SIANG'}, {time:'23:00–05:00', label:'Tidur'} ]
+};
+
+function DEFAULT_SETTINGS(){
+  return {
+    characterName: 'Jian', characterAvatar: '⚔️', expMultiplier: 1.0, showFloatingExp: true, soundEnabled: true, 
+    comboBonus: true, streakBonus: true, realmBonus: true, questDailyLimitEnabled: true, spiritualQuestLimit: 1,
+    researchQuestLimit: 3, sedekahExpPerRibu: 1, sedekahMaxExpPerDay: 50, language: 'id',
+    showWeeklyCalendar: true, showEisenhowerMatrix: true, show3Rules: true,
+    showSIP: true, showToDo: true, showBackgroundAnim: true,
+    dailyExpCap: 9999999, difficultyExp: {...DIFFICULTY_EXP}, comboBonusStep: 0.05, comboBonusCap: 5, streakBonusStep: 0.02, streakBonusCap: 30, realmBonusStep: 0.04,
+  };
+}
+
+function DEFAULT_STATE(){
+  return {
+    meta:{ lastActiveDate:null, lastWeekKey:null, lastMonthKey:null, completedTodayCount:0, levelCurve:1, startDate: todayStr(), activityLog: {}, dailyExpEarned:0 },
+    ui:{ tab:'home', questFilter:'all' },
+    character:{ name:'Jian Haikal', age:22, job:'Pejuang', shift:'pagi', avatarColor: 'linear-gradient(135deg,var(--arise),var(--cyan))', level:1, exp:0, hp: 100, maxHp: 100, realmIndex:0, realmEnergy:0, lifeScore:0, streak:0, longestStreak:0, failStreak:0, recoveryMode:false, lifetimeIncome:0, bossesDefeated:0, goalsCompleted:0, totalQuests:0, failedQuests:0, failedGoals:0, failedProjects:0, heavenBridges: 0, equippedTitle:'The Beginner', titlesUnlocked:['The Beginner', 'Wealth Core Lord'], },
+    _realmMigratedV2:false,
+    stats:{ strength:0,health:0,discipline:0,knowledge:0,communication:0,finance:0,focus:0,spirituality:0,leadership:0,confidence:0,consistency:0 },
+    spiritual:{ level:1, exp:0, dailyLog:{} }, 
+    customRituals: [],
+    realms: JSON.parse(JSON.stringify(DEFAULT_REALMS)),
+    quests: [ {id:'q1', title:'Selesaikan shift kerja', type:'daily', difficulty:'normal', stats:['consistency'], isCore:true, notes:'', status:'pending', dailyLimit: null, completionsToday: 0, lastCompletedDate: '', createdAt:Date.now()} ],
+    boss:{ name:`Target HP / Laptop`, maxHp:10000000, currentHp:10000000, log:[] }, 
+    bossHistory: [],
+    financeLog: [], 
+    goals:[], habits:[],
+    sip: { pagi: { status: 'pending', checkedCount:0 }, siang: { status: 'pending', progress: 0, checkedCount:0 }, config: { pagi: ['Bangun tepat waktu', 'Minum air', 'Target Hari Ini'], siang: ['Progress Quest Utama', 'Fokus'] } },
+    schedule: JSON.parse(JSON.stringify(DEFAULT_SCHEDULE)), settings: DEFAULT_SETTINGS(), customStats:[], achievementsUnlocked:[],
+    kanban: { cards: [] }, todos: [], sedekah: { entries:[], totalLifetime:0, dailyExpGained:0, lastExpDate:'' },
+    weeklyShiftPlan: {senin:'pagi', selasa:'pagi', rabu:'siang', kamis:'siang', jumat:'pagi', sabtu:'siang', minggu:'libur'},
+    commerce_deadline: new Date(new Date().getFullYear(), 11, 1).toISOString()
+  };
+}
+
+function migrateState(s){
+  if(!Array.isArray(s.goals)) s.goals = []; if(!Array.isArray(s.habits)) s.habits = []; if(!s.meta.activityLog) s.meta.activityLog = {};
+  if(typeof s.meta.dailyExpEarned !== 'number') s.meta.dailyExpEarned = 0; if(!s.sip) s.sip = DEFAULT_STATE().sip;
+  if(!s.schedule || !s.schedule.pagi) s.schedule = JSON.parse(JSON.stringify(DEFAULT_SCHEDULE));
+  if(!s._realmMigratedV2){ s.character.realmIndex = s.character.realmIndex || 0; s._realmMigratedV2 = true; }
+  s.realms = DEFAULT_REALMS.map(r => ({...r}));
+  if(typeof s.character.heavenBridges !== 'number') s.character.heavenBridges = 0;
+  if(typeof s.character.hp !== 'number') { s.character.hp = 100; s.character.maxHp = 100; }
+  if(!s.kanban) s.kanban = { cards: [] };
+  if(!Array.isArray(s.todos)) s.todos = []; if(!s.sedekah) s.sedekah = { entries:[], totalLifetime:0, dailyExpGained:0, lastExpDate:'' };
+  if(!s.weeklyShiftPlan) s.weeklyShiftPlan = DEFAULT_STATE().weeklyShiftPlan;
+  if(!s.spiritual.dailyLog) s.spiritual.dailyLog = {};
+  if(!s.customRituals) s.customRituals = [];
+  if(!s.financeLog) { s.financeLog = s.boss.log || []; s.boss.log = []; } 
+  if(!s.bossHistory) s.bossHistory = [];
+
+  if(!s.settings) s.settings = DEFAULT_SETTINGS();
+  const ds = DEFAULT_SETTINGS(); Object.keys(ds).forEach(k => { if(!(k in s.settings)) s.settings[k] = ds[k]; });
+  if(s.settings.dailyExpCap < 9999999) s.settings.dailyExpCap = 9999999;
+  return s;
+}
+
+function deepMerge(def, loaded){
+  if(Array.isArray(def)) return loaded!==undefined ? loaded : def;
+  if(def && typeof def==='object'){
+    const out = {}; for(const k in def){ out[k] = deepMerge(def[k], loaded ? loaded[k] : undefined); }
+    if(loaded){ for(const k in loaded){ if(!(k in out)) out[k]=loaded[k]; } } return out;
+  }
+  return loaded!==undefined ? loaded : def;
+}
+
+function loadState(){ try{ const saved = localStorage.getItem(STORAGE_KEY); if(saved) return JSON.parse(saved); } catch(e) { console.error(e); } return null; }
+function save(){ clearTimeout(saveTimer); saveTimer = setTimeout(()=>{ if(!state) return; try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e) {} }, 350); }
+
+function addActivityLog(note, exp = 0) { const today = todayStr(); state.meta.activityLog = state.meta.activityLog || {}; state.meta.activityLog[today] = (state.meta.activityLog[today] || 0) + 1; }
+
+// EXP Scaling: Dibuat jauh lebih curam di level atas
+function expNeeded(level){ 
+    return Math.round(100 * Math.pow(level, 1.7) + (level > 10 ? Math.pow(level - 10, 2) * 50 : 0)); 
+}
+function spiritualNeeded(level){ return Math.round(30 * Math.pow(level, 1.3)); }
+
+function recomputeLifeScore(){
+  if(!state) return; const c = state.character; const statSum = Object.values(state.stats).reduce((a,b)=>a+b,0);
+  // Ensured starting from 0 by subtracting 1 from levels
+  c.lifeScore = Math.max(0, (c.level-1)*10 + statSum*2 + c.streak*5 + c.realmIndex*50 + (state.spiritual.level-1)*8);
+}
+
+function gainExp(amount){
+  const c = state.character; const mult = state.settings.expMultiplier || 1.0; amount = Math.round(amount * mult);
+  if (amount > 0) {
+      if (state.meta.dailyExpEarned >= state.settings.dailyExpCap) { showToast('Batas EXP harian (' + state.settings.dailyExpCap + ') telah tercapai!', 'muted'); return; }
+      const allowedExp = Math.min(amount, state.settings.dailyExpCap - state.meta.dailyExpEarned);
+      state.meta.dailyExpEarned += allowedExp; c.exp += allowedExp;
+  } else {
+      c.exp += amount;
+      if (c.exp < 0) {
+          let remainingNeg = Math.abs(c.exp); c.exp = 0;
+          while(remainingNeg > 0 && c.level > 1) {
+              c.level -= 1;
+              const expN = expNeeded(c.level);
+              if(remainingNeg > expN) { remainingNeg -= expN; }
+              else { c.exp = expN - remainingNeg; remainingNeg = 0; }
+              showToast(`LEVEL DOWN! Kini Lv.${c.level}`, 'bad'); SFX.error();
+          }
+      }
+  }
+  let leveled=false; while(c.level<1000 && c.exp >= expNeeded(c.level)){ c.exp -= expNeeded(c.level); c.level += 1; leveled=true; }
+  if(leveled){ 
+      SFX.levelUp(); showLevelUp(c.level); 
+      // Force Realm Sinkronisasi untuk Level 20+ agar masuk ke struktur energi dengan benar
+      if(c.level >= 20 && c.realmIndex < 2) {
+          c.realmIndex = 2;
+      }
+  } 
+  recomputeLifeScore();
+}
+
+function bumpStat(key, amount){ if(!(key in state.stats)) return; state.stats[key] = Math.max(0, (state.stats[key]||0) + amount); recomputeLifeScore(); }
+function addRealmEnergy(amount){
+  const c = state.character; c.realmEnergy = Math.max(0, c.realmEnergy + amount);
+  if (isHeavenTrampling()) {
+      const energyPerBridge = Math.floor(500000 / 9);
+      while(c.realmEnergy >= energyPerBridge && c.heavenBridges < 9){
+          c.realmEnergy -= energyPerBridge; c.heavenBridges++; addActivityLog(`Jembatan Surga ke-${c.heavenBridges} ditembus!`); showToast(`Jembatan ke-${c.heavenBridges} ditembus!`, 'ach'); SFX.levelUp();
+          if(c.heavenBridges === 9){ addActivityLog('🌟 TA TIAN SEMPURNA'); showTrophy('TA TIAN SEMPURNA', 'Penguasa Kehampaan', '🌌'); }
+      } return;
+  }
+  let nextIdx = c.realmIndex + 1;
+  while(nextIdx < state.realms.length && c.realmEnergy >= state.realms[nextIdx].reqEnergy){
+    c.realmIndex = nextIdx; SFX.breakthrough(); triggerBreakthrough(state.realms[nextIdx].nameID); nextIdx = c.realmIndex + 1;
+  }
+}
+
+function rewardFor(q){
+  const cfg = state.settings || DEFAULT_SETTINGS(); let base = (cfg.difficultyExp && cfg.difficultyExp[q.difficulty]) || DIFFICULTY_EXP[q.difficulty] || 25;
+  if(q.type==='legendary') base = Math.max(base,150); if(q.type==='special') base = Math.round(base*1.3);
+  const comboBonus = cfg.comboBonus ? 1 + Math.min(state.meta.completedTodayCount || 0, cfg.comboBonusCap) * cfg.comboBonusStep : 1;
+  const streakBonus = cfg.streakBonus ? 1 + Math.min(state.character.streak, cfg.streakBonusCap) * cfg.streakBonusStep : 1;
+  const realmBonus = cfg.realmBonus ? 1 + state.character.realmIndex * cfg.realmBonusStep : 1;
+  return Math.max(1, Math.round(base * comboBonus * streakBonus * realmBonus));
+}
+
+function canCompleteQuestToday(q){ if(!q.dailyLimit) return true; return (q.completionsToday || 0) < q.dailyLimit; }
+function getRemainingCompletions(q){ if(!q.dailyLimit) return '∞'; return Math.max(0, q.dailyLimit - (q.completionsToday || 0)); }
+function afterQuestComplete(q){ q.completionsToday = (q.completionsToday || 0) + 1; q.lastCompletedDate = todayStr(); }
+
+function completeQuest(id){
+  const q = state.quests.find(x=>x.id===id); if(!q || q.status==='done') return;
+  if(!canCompleteQuestToday(q)) { showToast('Batas harian quest ini habis.', 'bad'); SFX.error(); return; }
+  const exp = rewardFor(q); q.status='done'; q.lastCompletedAt = Date.now();
+  state.meta.completedTodayCount = (state.meta.completedTodayCount||0)+1; state.character.totalQuests = (state.character.totalQuests||0)+1;
+  afterQuestComplete(q); addActivityLog(`Quest Selesai: ${q.title}`); gainExp(exp); addRealmEnergy(Math.round(exp*0.5));
+  (q.stats||[]).forEach(s=> bumpStat(s, Math.max(1,Math.round(exp/12))));
+  state.character.hp = Math.min(state.character.maxHp, state.character.hp + 2); // Restore HP
+  if(state.settings.showFloatingExp) showFloatingExp(exp); 
+  SFX.questComplete(); checkAchievements(); render(); save();
+}
+
+function failQuest(id){
+  const q = state.quests.find(x=>x.id===id); if(!q) return; 
+  const penalty = Math.max(50, Math.round(rewardFor(q) * 1.5 * state.character.level)); 
+  q.status='failed'; gainExp(-penalty); bumpStat('discipline', -3);
+  state.character.streak = Math.max(0, state.character.streak-1); state.character.realmEnergy = Math.max(0, state.character.realmEnergy-10);
+  state.character.failedQuests = (state.character.failedQuests || 0) + 1;
+  
+  state.character.hp -= 10;
+  if (state.character.hp <= 0) {
+      state.character.hp = state.character.maxHp;
+      gainExp(-1000 * Math.max(1, state.character.level));
+      showToast('HP Habis! Kultivasi Terluka Parah (- EXP Masif)', 'bad');
+  } else {
+      showToast(`Quest Gagal! HP -10 & EXP -${penalty}`,'bad'); 
+  }
+  SFX.error(); render(); save();
+}
+
+function postponeQuest(id){ const q = state.quests.find(x=>x.id===id); if(!q) return; q.status='postponed'; render(); save(); }
+function resetQuestStatus(id){ const q = state.quests.find(x=>x.id===id); if(!q) return; q.status='pending'; render(); save(); }
+function deleteQuestConfirm(id){
+  const q = state.quests.find(x=>x.id===id); if(!q) return;
+  openConfirm('Hapus quest "'+escapeHtml(q.title)+'"? Tindakan ini tidak dapat dibatalkan.', ()=>{ state.quests = state.quests.filter(x=>x.id!==id); render(); save(); });
+}
+
+let _editingQuestId = null;
+function openEditQuest(id) {
+    const q = state.quests.find(x=>x.id===id); if(!q) return;
+    _editingQuestId = id;
+    document.getElementById('aq-title').value = q.title;
+    document.getElementById('aq-type').value = q.type;
+    document.getElementById('aq-difficulty').value = q.difficulty;
+    document.getElementById('aq-core').checked = !!q.isCore;
+    document.getElementById('aq-notes').value = q.notes || '';
+    document.querySelectorAll('.aq-stat').forEach(el => el.checked = (q.stats || []).includes(el.value));
+    document.getElementById('modal-add-quest-title').textContent = 'Edit Quest';
+    openModal('modal-add-quest');
+}
+function openAddQuestModal() {
+    _editingQuestId = null;
+    document.getElementById('aq-title').value = '';
+    document.getElementById('aq-type').value = 'daily';
+    document.getElementById('aq-difficulty').value = 'normal';
+    document.getElementById('aq-core').checked = false;
+    document.getElementById('aq-notes').value = '';
+    document.querySelectorAll('.aq-stat').forEach(el => el.checked = false);
+    document.getElementById('modal-add-quest-title').textContent = 'Tambah Quest';
+    openModal('modal-add-quest');
+}
+
+function addQuest(){
+  const title = document.getElementById('aq-title').value.trim(); if(!title){ document.getElementById('aq-title').focus(); return; }
+  const type = document.getElementById('aq-type').value; const difficulty = document.getElementById('aq-difficulty').value;
+  const isCore = document.getElementById('aq-core').checked; const notes = document.getElementById('aq-notes').value.trim();
+  const stats = Array.from(document.querySelectorAll('.aq-stat:checked')).map(el=>el.value);
+  
+  let dLimit = null;
+  if(state.settings.questDailyLimitEnabled){
+      if(type === 'spiritual' || ['solat','shalat','subuh','dzuhur','ashar','maghrib','isya','tilawah','quran'].some(k => title.toLowerCase().includes(k))) dLimit = state.settings.spiritualQuestLimit || 1;
+  }
+
+  if(_editingQuestId) {
+      const q = state.quests.find(x=>x.id===_editingQuestId);
+      if(q) {
+          q.title = title; q.type = type; q.difficulty = difficulty; q.isCore = isCore; q.notes = notes; q.stats = stats;
+          if(dLimit !== null) q.dailyLimit = dLimit;
+      }
+  } else {
+      state.quests.push({id:uid('q'), title, type, difficulty, stats, isCore, notes, status:'pending', dailyLimit: dLimit, completionsToday: 0, lastCompletedDate: '', createdAt:Date.now()});
+  }
+  closeModal('modal-add-quest'); setTab('quests'); render(); save();
+}
+
+function getTodayActiveShift() { const map = ['minggu','senin','selasa','rabu','kamis','jumat','sabtu']; const todayName = map[new Date().getDay()]; return state.weeklyShiftPlan[todayName] || 'libur'; }
+
+function rollover(){
+  const today = todayStr();
+  if(!state.meta.lastActiveDate){ state.meta.lastActiveDate = today; state.meta.lastWeekKey = weekKey(new Date()); state.meta.lastMonthKey = monthKey(new Date()); return; }
+  const activeShift = getTodayActiveShift(); if(activeShift !== 'libur' && activeShift !== 'custom') state.character.shift = activeShift;
+  if(state.meta.lastActiveDate === today) return;
+
+  const gap = Math.max(1, diffDays(state.meta.lastActiveDate, today));
+  const dailyQuests = state.quests.filter(q=>q.type==='daily'); const coreQuests = dailyQuests.filter(q=>q.isCore);
+  const checklist = coreQuests.length ? coreQuests : dailyQuests; const allDone = checklist.length>0 && checklist.every(q=>q.status==='done');
+
+  if(gap >= 3) {
+      setTimeout(() => {
+          openConfirm(`⚠️ HUKUM ENTROPI BEKERJA! Kamu tidak membuka OS ini selama ${gap} hari. Kamu sedang ditarik ke dalam kekacauan dan kemunduran. Kerjakan tugasmu sekarang atau penyesalan yang menunggu di masa depan!`, () => {});
+      }, 1000);
+  }
+
+  let missedCount = 0;
+  dailyQuests.forEach(q => { if(q.status !== 'done' && q.status !== 'postponed') missedCount++; });
+  if(missedCount > 0 && gap >= 1) {
+      const penalty = missedCount * 50 * Math.max(1, state.character.level);
+      gainExp(-penalty);
+      state.character.failedQuests = (state.character.failedQuests||0) + missedCount;
+      showToast(`Hukuman Disiplin: -${penalty} EXP (${missedCount} Quest terlewat)`, 'bad');
+  }
+
+  state.goals.forEach(g => {
+      if(g.status === 'active' && g.deadline && g.deadline < today) {
+          g.status = 'failed'; state.character.failedGoals = (state.character.failedGoals||0)+1;
+          gainExp(-1000 * Math.max(1, state.character.level));
+          showToast(`Goal Gagal (Deadline): ${g.title} - EXP Terkuras!`, 'bad');
+      }
+  });
+
+  (state.kanban.cards || []).forEach(c => {
+      if(c.col !== 'selesai' && c.dateTarget && c.dateTarget < today && !c.failed) {
+          c.failed = true; state.character.failedProjects = (state.character.failedProjects||0)+1;
+          gainExp(-500 * Math.max(1, state.character.level));
+          showToast(`Project Overdue: ${c.title} - EXP Turun!`, 'bad');
+      }
+  });
+
+  if(gap===1 && allDone){ state.character.streak += 1; state.character.failStreak = 0; if(state.character.recoveryMode) state.character.recoveryMode = false; } 
+  else { state.character.streak = 0; state.character.failStreak += gap; if(state.character.failStreak>=3) state.character.recoveryMode = true; }
+  state.character.longestStreak = Math.max(state.character.longestStreak, state.character.streak);
+
+  (state.quests || []).forEach(q => { if(q.type==='daily') q.status='pending'; q.completionsToday = 0; });
+  state.meta.completedTodayCount = 0; state.meta.dailyExpEarned = 0;
+  if(state.sip) { state.sip.pagi.status = 'pending'; state.sip.siang.status = 'pending'; }
+  if(!state.spiritual.dailyLog) state.spiritual.dailyLog = {}; state.spiritual.dailyLog[today] = {};
+
+  const wk = weekKey(new Date()); if(wk !== state.meta.lastWeekKey){ state.quests.filter(q=>q.type==='weekly').forEach(q=>q.status='pending'); state.meta.lastWeekKey = wk; }
+  const mk = monthKey(new Date()); if(mk !== state.meta.lastMonthKey){ state.quests.filter(q=>q.type==='monthly').forEach(q=>q.status='pending'); state.meta.lastMonthKey = mk; }
+  state.meta.lastActiveDate = today; checkAchievements(); save();
+}
+
+function checkAchievements(){
+  let newlyUnlocked = [];
+  ACHIEVEMENT_DEFS.forEach(def=>{
+    if(state.achievementsUnlocked.includes(def.id)) return;
+    if(def.check(state)){ state.achievementsUnlocked.push(def.id); newlyUnlocked.push(def); if(def.grantsTitle && !state.character.titlesUnlocked.includes(def.grantsTitle)){ state.character.titlesUnlocked.push(def.grantsTitle); } }
+  });
+  newlyUnlocked.forEach(def=>{ showToast('Achievement unlocked: '+def.label,'ach'); SFX.levelUp(); });
+}
+function equipTitle(name){ 
+    if(!state.character.titlesUnlocked.includes(name)) { showToast('Title ini belum di-unlock!', 'bad'); return; }
+    if(state.character.equippedTitle === name) {
+        state.character.equippedTitle = '';
+        showToast('Title Dilepas', 'muted');
+    } else {
+        state.character.equippedTitle = name; 
+        showToast('Title Berhasil Dipasang', 'ach'); 
+    }
+    render(); save(); 
+}
+
+function logSpiritual(key, isSuccess, isCustom = false){
+  const today = todayStr();
+  state.spiritual.dailyLog = state.spiritual.dailyLog || {};
+  if(!state.spiritual.dailyLog[today]) state.spiritual.dailyLog[today] = {};
+  if(state.spiritual.dailyLog[today][key]) { showToast('Sudah dicatat hari ini!', 'bad'); SFX.error(); return; }
+  
+  let item = isCustom ? state.customRituals.find(x=>x.id===key) : SPIRITUAL_ACTIONS.find(x=>x.key===key);
+  if(!item) return;
+
+  state.spiritual.dailyLog[today][key] = isSuccess ? 'success' : 'fail';
+  addActivityLog(`Ritual: ${item.label} (${isSuccess?'Berhasil':'Gagal'})`);
+
+  if(isSuccess) {
+      state.spiritual.exp += item.exp; bumpStat('spirituality',2);
+      let leveled=false;
+      while(state.spiritual.exp >= spiritualNeeded(state.spiritual.level)){ state.spiritual.exp -= spiritualNeeded(state.spiritual.level); state.spiritual.level += 1; leveled = true; }
+      if(leveled) { showToast('Spiritual Level Up! Lv.'+state.spiritual.level,'ach'); SFX.levelUp(); }
+      else { showToast('+'+item.exp+' Spiritual EXP','exp'); SFX.questComplete(); }
+  } else {
+      const penalty = Math.round(item.exp * 0.5);
+      state.spiritual.exp = Math.max(0, state.spiritual.exp - penalty);
+      bumpStat('discipline', -1);
+      showToast('Gagal Ritual (-'+penalty+' Spiritual EXP)','bad'); SFX.error();
+  }
+  recomputeLifeScore(); render(); save();
+}
+
+function addCustomRitual() {
+    const title = prompt("Nama Ritual Kustom (contoh: Baca Buku, Jurnal):");
+    if(!title) return;
+    const exp = parseInt(prompt("Reward EXP Spiritual (misal: 10):")) || 10;
+    state.customRituals.push({id:uid('cr'), label:title, exp:exp, icon:'✨'});
+    render(); save();
+}
+function deleteCustomRitual(id) {
+    if(confirm("Hapus ritual kustom ini?")) { state.customRituals = state.customRituals.filter(x => x.id !== id); render(); save(); }
+}
+
+function toggleHabit(id, dateStr){
+  const h = state.habits.find(x=>x.id===id); if(!h) return;
+  if(!h.log) h.log = {}; const isDone = !!h.log[dateStr];
+  if(isDone){
+    delete h.log[dateStr]; if(state.meta.activityLog && state.meta.activityLog[dateStr]) { state.meta.activityLog[dateStr] = Math.max(0, state.meta.activityLog[dateStr] - 1); }
+    gainExp(-5); bumpStat('discipline', -1); SFX.error();
+  } else {
+    h.log[dateStr] = true; addActivityLog(`Habit Complete: ${h.title}`); gainExp(5); bumpStat('discipline', 1); showFloatingExp(5); SFX.questComplete();
+  } render(); save();
+}
+function addHabit(){ const titleEl = document.getElementById('ah-title'); const title = titleEl.value.trim(); if(!title){ titleEl.focus(); return; } state.habits.push({ id:uid('h'), title, log:{}, createdAt:Date.now() }); titleEl.value=''; closeModal('modal-add-habit'); render(); save(); }
+function deleteHabit(id){ const h = state.habits.find(x=>x.id===id); if(!h) return; openConfirm('Hapus habit "'+escapeHtml(h.title)+'" beserta seluruh riwayatnya?', ()=>{ state.habits = state.habits.filter(x=>x.id!==id); render(); save(); }); }
+function getLast7Days(){ const days = []; const dayNames = ['Min','Sen','Sel','Rab','Kam','Jum','Sab']; for(let i=6; i>=0; i--){ const d = new Date(); d.setDate(d.getDate() - i); days.push({ dateStr: d.toLocaleDateString('en-CA'), label: dayNames[d.getDay()], isToday: i===0 }); } return days; }
+
+function addFinanceTransaction(){
+  const amount = parseInt(document.getElementById('bi-amount').value,10); 
+  const note = document.getElementById('bi-note').value.trim();
+  const type = document.getElementById('bi-type').value; 
+
+  if(!amount || amount<=0){ document.getElementById('bi-amount').focus(); return; } 
+  
+  if(type === 'in') {
+      state.character.lifetimeIncome = (state.character.lifetimeIncome||0) + amount; 
+      bumpStat('finance', Math.max(1, Math.round(amount/100000))); 
+      addRealmEnergy(Math.round(amount/50000));
+      state.financeLog.unshift({date: todayStr(), amount, note, type: 'in'}); 
+  } else {
+      state.financeLog.unshift({date: todayStr(), amount, note, type: 'out'}); 
+  }
+
+  if(state.financeLog.length>30) state.financeLog.length = 30;
+  
+  closeModal('modal-log-income'); 
+  document.getElementById('bi-amount').value=''; document.getElementById('bi-note').value=''; 
+  SFX.coin(); checkAchievements(); render(); save();
+}
+
+function updateBossTarget(){
+  const amount = parseInt(document.getElementById('bt-amount').value,10); 
+  if(!amount){ return; } 
+  const wasDefeated = state.boss.currentHp <= 0;
+  state.boss.currentHp = Math.max(0, state.boss.currentHp - amount);
+  closeModal('modal-update-boss');
+  if(state.boss.currentHp<=0 && !wasDefeated){ 
+      // Save Boss History
+      state.bossHistory = state.bossHistory || [];
+      state.bossHistory.unshift({
+          name: state.boss.name,
+          target: state.boss.maxHp,
+          date: todayStr(),
+          time: new Date().toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'}),
+          status: 'success'
+      });
+      
+      triggerBossDefeat(state.boss.name); 
+      const reward = 10000 + Math.round(state.boss.maxHp / 5000); 
+      gainExp(reward);
+      showToast(`Target Tercapai! +${reward} EXP`, 'ach');
+      SFX.victory();
+  } else {
+      SFX.questComplete();
+  }
+  render(); save();
+}
+
+function setNewBoss(){
+  const name = document.getElementById('nb-name').value.trim(); const maxHp = parseInt(document.getElementById('nb-maxhp').value,10);
+  if(!name || !maxHp || maxHp<=0) return; state.boss = {name, maxHp, currentHp:maxHp, log:[]}; closeModal('modal-new-boss'); render(); save();
+}
+
+let _editingGoalId = null;
+function openAddGoal() {
+    _editingGoalId = null;
+    document.getElementById('modal-add-goal-title').textContent = 'Tambah Goal';
+    ['ag-title','ag-target','ag-unit','ag-deadline','ag-notes'].forEach(id=>{ document.getElementById(id).value=''; }); 
+    openModal('modal-add-goal');
+}
+function openEditGoal(id) {
+    const g = state.goals.find(x=>x.id===id); if(!g) return;
+    _editingGoalId = id;
+    document.getElementById('modal-add-goal-title').textContent = 'Edit Goal';
+    document.getElementById('ag-title').value = g.title;
+    document.getElementById('ag-target').value = g.target;
+    document.getElementById('ag-unit').value = g.unit;
+    document.getElementById('ag-deadline').value = g.deadline || '';
+    document.getElementById('ag-notes').value = g.notes || '';
+    openModal('modal-add-goal');
+}
+
+function addGoal(){
+  const title = document.getElementById('ag-title').value.trim(); if(!title) return; 
+  let target = parseFloat(document.getElementById('ag-target').value);
+  const deadline = document.getElementById('ag-deadline').value || ''; 
+  const notes = document.getElementById('ag-notes').value.trim();
+
+  if(isNaN(target) || target <= 0) {
+      if(deadline) { target = Math.max(1, diffDays(todayStr(), deadline)); } 
+      else { target = 100; }
+  }
+  const unit = document.getElementById('ag-unit').value.trim() || (deadline && !document.getElementById('ag-target').value ? 'hari' : 'poin'); 
+  
+  if(_editingGoalId) {
+      const g = state.goals.find(x=>x.id===_editingGoalId);
+      if(g) { g.title=title; g.target=target; g.unit=unit; g.deadline=deadline; g.notes=notes; }
+  } else {
+      state.goals.push({id:uid('g'), title, target, unit, current:0, deadline, notes, status:'active', createdAt:Date.now()});
+  }
+  closeModal('modal-add-goal'); render(); save();
+}
+
+function quickAddGoal(id) { document.getElementById('ug-goal-id').value = id; document.getElementById('ug-amount').value = 1; submitGoalProgress(); }
+function openUpdateGoal(id){ document.getElementById('ug-goal-id').value = id; document.getElementById('ug-amount').value = ''; openModal('modal-update-goal'); }
+function submitGoalProgress(){
+  const id = document.getElementById('ug-goal-id').value; const amount = parseFloat(document.getElementById('ug-amount').value);
+  const g = state.goals.find(x=>x.id===id); if(!g || isNaN(amount) || amount===0) return;
+  g.current = Math.max(0, g.current + amount); if(amount>0) gainExp(5);
+  if(g.current >= g.target){ 
+      if(g.status!=='done'){ 
+          g.status='done'; state.character.goalsCompleted = (state.character.goalsCompleted||0)+1; 
+          const duration = Math.max(1, diffDays(new Date(g.createdAt).toLocaleDateString('en-CA'), todayStr()));
+          const rewardExp = 1000 + (duration * 100) + (g.target * 10);
+          gainExp(rewardExp); addRealmEnergy(40); showToast(`Goal tercapai: ${g.title} (+${rewardExp} EXP)`,'ach'); SFX.victory(); checkAchievements(); 
+      } 
+  } else { g.status='active'; SFX.questComplete(); }
+  closeModal('modal-update-goal'); render(); save();
+}
+function deleteGoalConfirm(id){ const g = state.goals.find(x=>x.id===id); if(!g) return; openConfirm('Hapus goal "'+escapeHtml(g.title)+'"?', ()=>{ state.goals = state.goals.filter(x=>x.id!==id); render(); save(); }); }
+
+function getCurrentTimeBlockInfo() {
+    const shift = getTodayActiveShift() === 'libur' ? state.character.shift : getTodayActiveShift();
+    const blocks = state.schedule[shift] || []; if (!blocks.length) return null;
+    const now = new Date(); const currentMins = now.getHours() * 60 + now.getMinutes();
+    for (let i = 0; i < blocks.length; i++) {
+        const b = blocks[i]; if (!b.time) continue; const parts = b.time.split(/\s*[-–—]\s*/);
+        if (parts.length === 2) {
+            const [sh, sm] = parts[0].split(':').map(Number); const [eh, em] = parts[1].split(':').map(Number);
+            if (isNaN(sh) || isNaN(eh)) continue; let startMins = sh * 60 + (sm || 0); let endMins = eh * 60 + (em || 0);
+            if (endMins < startMins) { if (currentMins >= startMins || currentMins < endMins) return { current: b, next: blocks[(i + 1) % blocks.length] }; } 
+            else { if (currentMins >= startMins && currentMins < endMins) return { current: b, next: blocks[(i + 1) % blocks.length] }; }
+        }
+    } return null;
+}
+function renderTimeBlockCard() {
+    const info = getCurrentTimeBlockInfo(); const nowTime = new Date().toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'}); const shiftNow = getTodayActiveShift();
+    if(shiftNow === 'libur') return `<div class="card" style="margin-top:14px; border-color: var(--border-strong);"><div class="row-between small"><span style="color:var(--muted); font-weight:600;">WAKTU BEBAS (LIBUR)</span><span class="muted">${nowTime}</span></div><div style="font-size:13px; color:var(--muted); margin-top:6px;">Hari ini dijadwalkan sebagai hari Libur.</div></div>`;
+    if (!info) return `<div class="card" style="margin-top:14px; border-color: var(--border-strong);"><div class="row-between small"><span style="color:var(--muted); font-weight:600;">WAKTU BEBAS</span><span class="muted">${nowTime}</span></div><div style="font-size:13px; color:var(--muted); margin-top:6px;">Tidak ada jadwal blok waktu saat ini.</div></div>`;
+    const c = info.current; const n = info.next;
+    return `<div class="card glass-panel" style="margin-top:14px; border-color: rgba(45, 212, 244, 0.4); background: linear-gradient(145deg, rgba(45, 212, 244, 0.05), transparent);"><div class="row-between small"><span style="color:var(--cyan); font-weight:700; letter-spacing:0.5px;"><span class="live-dot"></span>SAAT INI · ${escapeHtml(c.time)}</span><span class="muted" style="font-family:var(--font-system); font-weight:600;">${nowTime}</span></div><div style="font-family:var(--font-system); font-size:16px; font-weight:700; color:var(--bone); margin:8px 0 4px;">${escapeHtml(c.label)}</div>${n && n !== c ? `<div class="small muted mt-10" style="border-top: 1px solid var(--border); padding-top: 8px;">Selanjutnya: <b>${escapeHtml(n.time)}</b> — ${escapeHtml(n.label)}</div>` : ''}</div>`;
+}
+function updateTimeBlockUI() { const slot = document.getElementById('time-block-slot'); if (slot && state && state.ui && state.ui.tab === 'home') { slot.innerHTML = renderTimeBlockCard(); } }
+
+let calViewYear = new Date().getFullYear(); let calViewMonth = new Date().getMonth();
+function changeCalMonth(offset) { calViewMonth += offset; if (calViewMonth > 11) { calViewMonth = 0; calViewYear++; } if (calViewMonth < 0) { calViewMonth = 11; calViewYear--; } render(); }
+
+function renderRecoveryBanner(){ const slot = document.getElementById('recovery-banner-slot'); if(!slot) return; if(state.character.recoveryMode){ slot.innerHTML = `<div class="recovery-banner">⚠ RECOVERY MODE AKTIF<small>Fokus hanya pada Core Habit hari ini.</small></div>`; } else slot.innerHTML=''; }
+
+function renderCalendar() {
+    const daysInMonth = new Date(calViewYear, calViewMonth + 1, 0).getDate(); const firstDay = new Date(calViewYear, calViewMonth, 1).getDay(); const monthNames = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+    let html = `<div class="section-title">Consistency Calendar</div><div class="card calendar-card glass-panel"><div class="cal-header"><button class="cal-nav-btn" onclick="changeCalMonth(-1)"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button><div>${monthNames[calViewMonth]} ${calViewYear}</div><button class="cal-nav-btn" onclick="changeCalMonth(1)"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></button></div><div class="cal-grid">${['Min','Sen','Sel','Rab','Kam','Jum','Sab'].map(d => `<div class="cal-day-name">${d}</div>`).join('')}`;
+    for (let i = 0; i < firstDay; i++) html += `<div class="cal-cell empty"></div>`;
+    const today = todayStr(); const activityLog = state.meta.activityLog || {};
+    for (let i = 1; i <= daysInMonth; i++) {
+        const dStr = calViewYear + '-' + String(calViewMonth + 1).padStart(2, '0') + '-' + String(i).padStart(2, '0');
+        const acts = activityLog[dStr]; let actClass = '';
+        if (acts === undefined && dStr < today) { actClass = 'missed'; } 
+        else if (acts > 0 && acts <= 2) actClass = 'active-1'; else if (acts > 2 && acts <= 5) actClass = 'active-2'; else if (acts > 5) actClass = 'active-3';
+        html += `<div class="cal-cell ${actClass} ${dStr === today ? 'today' : ''}" title="${acts||0} Aktivitas Terselesaikan">${i}</div>`;
+    }
+    html += `</div></div>`; return html;
+}
+
+let _expandedWeeklyDay = null;
+function toggleWeeklyExpand(day) { _expandedWeeklyDay = _expandedWeeklyDay === day ? null : day; render(); }
+function renderWeeklyShiftCalendar() {
+    if(!state.settings.showWeeklyCalendar) return '';
+    const map = ['minggu','senin','selasa','rabu','kamis','jumat','sabtu']; const labelMap = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+    const SHIFT_BADGE = { pagi: { label:'☀️ Pagi', color:'var(--cyan)' }, siang: { label:'🌅 Siang', color:'var(--gold)' }, libur: { label:'🌙 Libur', color:'var(--muted)'}, custom: { label:'⚙️ Custom', color:'var(--orange)'} };
+    const cells = map.map((day, i) => {
+        const shift = state.weeklyShiftPlan?.[day] || 'libur'; const badge = SHIFT_BADGE[shift];
+        const schedule = state.schedule?.[shift] || [];
+        const blockHTML = (_expandedWeeklyDay === day && schedule.length) ? schedule.map(b => `<div class="time-block-mini"><span class="tb-time">${b.time}</span><span class="tb-label">${escapeHtml(b.label)}</span></div>`).join('') : '';
+        return `<div class="weekly-cal-cell ${i === new Date().getDay() ? 'today' : ''}" onclick="toggleWeeklyExpand('${day}')"><div class="wc-day">${labelMap[i].substring(0,3)}</div><div class="wc-badge" style="color:${badge.color}">${badge.label.split(' ')[0]}</div>${blockHTML}</div>`;
+    });
+    return `<div class="section-title">Weekly Shift Roster</div><div class="card"><div class="small muted mb-14">Klik untuk melihat detail jam kerja.</div><div class="weekly-calendar">${cells.join('')}</div></div>`;
+}
+
+function renderHabits(){
+  const days = getLast7Days(); let html = `<div class="section-title row-between"><span>Habit Tracker</span><button class="icon-btn" onclick="openModal('modal-add-habit')"><svg viewBox="0 0 24 24"><path d="M12 5v14m-7-7h14"/></svg></button></div>`;
+  if(!state.habits || state.habits.length===0){ return html + `<div class="card empty-state"><span class="big">Belum ada Habit</span>Lacak kebiasaan kecil harianmu di sini.<br><button class="btn btn-ghost mt-10" onclick="openModal('modal-add-habit')">+ Tambah Habit</button></div>`; }
+  const listHtml = state.habits.map(h=>{
+    const dots = days.map(d=>`<div class="habit-day"><div class="habit-day-lbl ${d.isToday?'today':''}">${d.label}</div><div class="habit-dot ${h.log && h.log[d.dateStr]?'done':''}" onclick="toggleHabit('${h.id}', '${d.dateStr}')"><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></div></div>`).join('');
+    return `<div class="habit-row"><div class="row-between"><span class="habit-title">${escapeHtml(h.title)}</span><button class="icon-btn" onclick="deleteHabit('${h.id}')" title="Hapus"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg></button></div><div class="habit-days">${dots}</div></div>`;
+  }).join('');
+  return html + `<div class="card">${listHtml}</div>`;
+}
+
+function renderTodos(){
+  if(!state.settings.showToDo) return '';
+  let html = `<div class="section-title row-between"><span>To-Do Cepat</span><button class="icon-btn" onclick="openModal('modal-add-todo')"><svg viewBox="0 0 24 24"><path d="M12 5v14m-7-7h14"/></svg></button></div>`;
+  const activeTodos = state.todos.filter(t => !t.done);
+  if(activeTodos.length === 0){ html += `<div class="card empty-state"><span class="big">Semua Beres</span>Kamu bisa menambahkan To-Do harian yang singkat.</div>`; } 
+  else {
+    if(state.settings.showEisenhowerMatrix) {
+        html += `<div class="eisenhower-grid">` + 
+          renderQuadrant('🔴 Kerjakan Dulu', activeTodos.filter(t => t.priority==='penting' && t.urgent), 'var(--crimson)', 'Penting & Urgent') +
+          renderQuadrant('🟡 Jadwalkan', activeTodos.filter(t => t.priority==='penting' && !t.urgent), 'var(--jade)', 'Penting & Tidak Urgent') +
+          renderQuadrant('🔵 Delegasikan', activeTodos.filter(t => t.priority==='tidak_penting' && t.urgent), 'var(--orange)', 'Tidak Penting & Urgent') +
+          renderQuadrant('⚪ Opsional', activeTodos.filter(t => t.priority==='tidak_penting' && !t.urgent), 'var(--muted)', 'Tidak Penting & Tidak Urgent') + `</div>`;
+    } else {
+        html += `<div class="card">` + activeTodos.map(t => `<div class="todo-item ${t.done?'done':''}"><input type="checkbox" ${t.done?'checked':''} onchange="toggleToDo('${t.id}')"><span style="flex:1;">${escapeHtml(t.title)}</span><button class="icon-btn" onclick="deleteToDo('${t.id}')" style="padding:0;"><svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg></button></div>`).join('') + `</div>`;
+    }
+  } return html;
+}
+function renderQuadrant(title, items, color, desc) {
+    let list = items.map(t => `<div class="todo-item-mini"><input type="checkbox" onchange="toggleToDo('${t.id}')"><span>${escapeHtml(t.title)}</span></div>`).join('');
+    if(!list) list = `<div class="todo-empty-mini">Kosong</div>`;
+    return `<div class="card quadrant"><div class="q-header" style="color:${color};">${title}</div><div class="q-desc">${desc}</div>${list}</div>`;
+}
+
+function addToDo() { const title = document.getElementById('at-title').value.trim(); if(!title) return; state.todos.push({ id: uid('td'), title, priority: document.getElementById('at-priority').value, urgent: document.getElementById('at-urgent').checked, done: false, createdAt: Date.now() }); document.getElementById('at-title').value = ''; closeModal('modal-add-todo'); render(); save(); }
+function toggleToDo(id) { const t = state.todos.find(x => x.id === id); if(t) { t.done = !t.done; t.doneAt = t.done ? new Date().toISOString() : ''; if(t.done) SFX.questComplete(); else SFX.error(); render(); save(); } }
+function deleteToDo(id) { state.todos = state.todos.filter(x => x.id !== id); render(); save(); }
+
+function addSedekah(){
+  const nominal = parseInt(document.getElementById('sedekah-nominal').value, 10); if(!nominal || nominal <= 0) return;
+  const today = todayStr(); if(state.sedekah.lastExpDate !== today){ state.sedekah.dailyExpGained = 0; state.sedekah.lastExpDate = today; }
+  const expGained = Math.max(0, Math.min(Math.floor(nominal / 1000) * (state.settings?.sedekahExpPerRibu ?? 1), (state.settings?.sedekahMaxExpPerDay ?? 50) - state.sedekah.dailyExpGained));
+  state.sedekah.entries.unshift({ id: Date.now().toString(), nominal, date: document.getElementById('sedekah-date').value || today, note: document.getElementById('sedekah-note').value.trim(), expGained, createdAt: new Date().toISOString() });
+  if(state.sedekah.entries.length > 20) state.sedekah.entries.length = 20; 
+  state.sedekah.totalLifetime += nominal; state.sedekah.dailyExpGained += expGained;
+  
+  state.character.lifetimeIncome = Math.max(0, (state.character.lifetimeIncome||0) - nominal);
+  state.financeLog.unshift({date: today, amount: nominal, note: 'Sedekah: ' + document.getElementById('sedekah-note').value.trim(), type: 'out'});
+
+  if(expGained > 0){ gainExp(expGained); showFloatingExp(expGained); }
+  document.getElementById('sedekah-nominal').value = ''; document.getElementById('sedekah-note').value = ''; SFX.coin(); render(); save();
+}
+
+function render3Rules(){
+  if(!state.settings?.show3Rules) return '';
+  return `<div class="card" style="border-left: 3px solid var(--arise-bright);"><div style="font-family:var(--font-system); font-weight:700; color:var(--arise-bright); margin-bottom:6px;">📌 3 Aturan Main Anti-Gagal</div><ol style="margin:0; padding-left:16px; font-size:11.5px; color:var(--muted); line-height:1.5;"><li><b>Siapkan malam sebelumnya</b></li><li><b>Jangan berpikir, langsung lakukan</b></li><li><b>Coret setiap item yang selesai</b></li></ol></div>`;
+}
+
+function renderDailyTimeline() {
+    const shift = getTodayActiveShift() === 'libur' ? state.character.shift : getTodayActiveShift();
+    let html = `<div class="timeline-container">` + (state.schedule[shift] || []).map(b => `<div class="timeline-item"><div class="time">${escapeHtml(b.time)}</div><div class="desc">${escapeHtml(b.label)}</div></div>`).join('') + `</div>`;
+    return `<div class="section-title">Timeline Harian (${shift.toUpperCase()})</div><div class="card glass-panel">${html}</div>`;
+}
+
+function render(){
+  if(!state) return; 
+  const streakApi = state.character.streak > 0 ? ` 🔥${state.character.streak}` : '';
+  document.getElementById('day-counter').textContent = 'DAY '+(diffDays(state.meta.startDate, todayStr())+1) + streakApi;
+  
+  renderRecoveryBanner(); renderNav();
+  const main = document.getElementById('main'); const tab = state.ui && state.ui.tab ? state.ui.tab : 'home';
+  if(tab==='home') main.innerHTML = renderHome(); else if(tab==='quests') main.innerHTML = renderQuests(); else if(tab==='goals') main.innerHTML = renderGoals(); else if(tab==='stats') main.innerHTML = renderStats(); else if(tab==='boss') main.innerHTML = renderBoss(); else if(tab==='profile') main.innerHTML = renderProfile(); else if(tab==='project') main.innerHTML = renderProjectKanban(); else if(tab==='enlight') main.innerHTML = renderStatisticsTable(); 
+}
+
+function renderNav(){ if(!state || !state.ui) return; document.querySelectorAll('.nav-btn').forEach(btn=>{ const isActive = btn.dataset.tab===state.ui.tab; btn.classList.toggle('active', isActive); if(isActive) { const nav = document.getElementById('bottom-nav'); nav.scrollTo({ left: btn.offsetLeft - (nav.clientWidth/2) + (btn.clientWidth/2), behavior: 'smooth' }); } }); }
+function setTab(tab){ if(!state || !state.ui) return; state.ui.tab = tab; save(); if(daoChart) { daoChart.destroy(); daoChart = null; } render(); document.getElementById('main').scrollTop = 0; window.scrollTo(0,0); }
+
+function renderRitualButton(item, isCustom = false) {
+    const today = todayStr();
+    const logData = state.spiritual.dailyLog?.[today]?.[item.id || item.key];
+    
+    if (logData) {
+        const isSuccess = logData === 'success';
+        return `<div class="spirit-btn" style="opacity:0.6; border-color:${isSuccess?'var(--jade)':'var(--crimson)'};">
+            <div style="font-size:16px;">${item.icon} ${escapeHtml(item.label)}</div>
+            <small style="color:${isSuccess?'var(--jade)':'var(--crimson)'}">${isSuccess?'Berhasil':'Gagal'}</small>
+        </div>`;
+    } else {
+        const jsParam = isCustom ? `'${item.id}', \${val}, true` : `'${item.key}', \${val}`;
+        return `<div class="spirit-btn">
+            <div style="font-size:14px; margin-bottom:6px;">${item.icon} ${escapeHtml(item.label)}</div>
+            <div style="display:flex; justify-content:space-between; gap:4px; margin-top:auto;">
+               <button class="btn btn-secondary btn-sm" style="flex:1; color:var(--jade); border-color:rgba(52,211,153,0.3);" onclick="logSpiritual(${jsParam.replace('${val}','true')})">✓</button>
+               <button class="btn btn-secondary btn-sm" style="flex:1; color:var(--crimson); border-color:rgba(255,71,104,0.3);" onclick="logSpiritual(${jsParam.replace('${val}','false')})">✕</button>
+            </div>
+            ${isCustom ? `<button class="icon-btn" style="position:absolute; top:2px; right:2px; padding:2px;" onclick="deleteCustomRitual('${item.id}')"><svg viewBox="0 0 24 24" width="12" height="12"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2"/></svg></button>`:''}
+        </div>`;
+    }
+}
+
+function renderHome(){
+  const c = state.character; 
+  const dynRealm = getDynamicRealmInfo(c);
+
+  const expFrac = Math.min(1, c.exp / expNeeded(c.level)); const circumference = 2*Math.PI*70; const offset = circumference * (1-expFrac);
+  
+  function getLevelGradient(lvl) {
+      const tiers = [ 
+          ['#00f2fe', '#4facfe'], ['#43e97b', '#38f9d7'], ['#fa709a', '#fee140'], 
+          ['#b12a5b', '#ff8177'], ['#c471f5', '#fa71cd'], ['#f83600', '#f9d423'], 
+          ['#00c6ff', '#0072ff'], ['#16a085', '#f4d03f'], ['#ff0844', '#ffb199'], 
+          ['#30cfd0', '#330867'], ['#ff0000', '#ffea00', '#00ff00', '#00ffff'] 
+      ];
+      let idx = Math.floor((lvl - 1) / 10); if (idx >= tiers.length) idx = tiers.length - 1; if (idx < 0) idx = 0;
+      const colors = tiers[idx];
+      if (colors.length === 2) return `<stop offset="0%" stop-color="${colors[0]}" /><stop offset="100%" stop-color="${colors[1]}" />`;
+      return colors.map((col, i) => `<stop offset="${(i/(colors.length-1))*100}%" stop-color="${col}"/>`).join('');
+  }
+  const gradStops = getLevelGradient(c.level);
+
+  const spiritFrac = Math.min(100, Math.round(100*state.spiritual.exp/spiritualNeeded(state.spiritual.level)));
+
+  const dailyQuests = state.quests.filter(q=>q.type==='daily'); const coreQuests = dailyQuests.filter(q=>q.isCore);
+  const focusList = state.character.recoveryMode && coreQuests.length ? coreQuests : dailyQuests; const todaysQuests = focusList.slice(0,5);
+  
+  const currentWealth = c.lifetimeIncome || 0; 
+  const pengeluaran = (state.financeLog||[]).filter(l => l.type === 'out').reduce((sum, l) => sum + l.amount, 0);
+
+  const bridgeInfo = isHeavenTrampling() ? `<div class="small muted" style="color:var(--arise-bright); margin-top:4px; font-weight:bold;">Jembatan ${c.heavenBridges} / 9</div>` : '';
+  const sr = soulRankFor(state.spiritual.level);
+  
+  return `
+  <div class="card glass-panel holo-box" style="padding:18px 14px; text-align:center;">
+    <div class="ring-wrap">
+      <div class="ring-orbit"></div>
+      <svg viewBox="0 0 160 160" style="filter: drop-shadow(0 0 10px rgba(45, 212, 244, 0.4));">
+        <defs>
+            <linearGradient id="ringHoloGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              ${gradStops}
+            </linearGradient>
+        </defs>
+        <circle class="ring-track" cx="80" cy="80" r="70"></circle>
+        <circle class="ring-fill" cx="80" cy="80" r="70" stroke="url(#ringHoloGrad)" stroke-dasharray="${circumference}" stroke-dashoffset="${offset}"></circle>
+      </svg>
+      <div class="ring-center"><div class="ring-level-label">LEVEL</div><div class="holo-text" style="font-family: var(--font-display); font-size:42px;">${c.level}</div></div>
+    </div>
+    ${c.equippedTitle ? `<div class="title-banner" style="${getTitleStyle(c.equippedTitle)}">${escapeHtml(c.equippedTitle)}</div>` : ''}
+    <div class="realm-name holo-text" style="font-family: var(--font-display); font-size:18px; margin-top:14px;">${dynRealm.nameID} ${dynRealm.subName ? `(${dynRealm.subName})` : ''}</div>
+    <div class="small muted" style="text-align:center;margin-top:4px; font-weight:700;">${dynRealm.stepInfo.label} · <span style="color:${dynRealm.stepInfo.color}">${dynRealm.stepInfo.realmID}</span></div>
+    ${bridgeInfo}
+    <div class="small muted" style="text-align:center;margin-top:2px;">${dynRealm.reqEnergyText}</div>
+    
+    <div class="spiritual-bar-wrap">
+      <div class="row-between small" style="margin-bottom:5px;"><span class="muted">Spiritual Lv.${state.spiritual.level} · <span style="color:${sr.color}">${sr.labelID}</span></span><span class="muted">${spiritFrac}%</span></div>
+      <div class="spiritual-track"><div class="spiritual-fill" style="width:${spiritFrac}%"></div></div>
+    </div>
+    <div class="hp-bar-wrap" style="margin-top:10px;">
+      <div class="row-between small" style="margin-bottom:5px;"><span class="muted" style="font-weight:700; color:var(--crimson);">Vitality (HP)</span><span class="muted" style="color:var(--crimson)">${c.hp}/${c.maxHp}</span></div>
+      <div class="stat-track" style="background:rgba(255,71,104,0.1);"><div class="stat-fill" style="width:${(c.hp/c.maxHp)*100}%; background:linear-gradient(90deg, #8a1c1c, var(--crimson)); box-shadow: 0 0 8px rgba(255,71,104,0.5);"></div></div>
+    </div>
+
+    <div class="life-score-row">
+      <div class="life-score-item"><div class="num" style="color:var(--gold-soft)">${c.lifeScore}</div><div class="lbl">Life Score</div></div>
+      <div class="life-score-item"><div class="num" style="color:var(--orange)">${c.streak}🔥</div><div class="lbl">Streak</div></div>
+      <div class="life-score-item"><div class="num" style="color:var(--cyan)">${c.bossesDefeated||0}</div><div class="lbl">Target Achieved</div></div>
+    </div>
+  </div>
+
+  <div id="time-block-slot">${renderTimeBlockCard()}</div>
+  ${renderWeeklyShiftCalendar()}
+
+  <div class="card glass-panel" style="border-color: rgba(240,185,59,0.3); background: linear-gradient(145deg, rgba(240,185,59,0.05), transparent);">
+    <div class="row-between small"><span style="color:var(--gold); font-weight:800; font-family:var(--font-system); letter-spacing:1px;">TOTAL UANG</span></div>
+    <div class="row-between mt-10" style="align-items:flex-end;">
+        <div>
+            <div class="small muted">Pemasukan / Loot</div>
+            <div style="font-family:var(--font-system); font-size:18px; font-weight:800; color:var(--gold);">${formatRupiah(currentWealth)}</div>
+        </div>
+        <div style="text-align:right;">
+            <div class="small muted">Pengeluaran</div>
+            <div style="font-family:var(--font-system); font-size:14px; font-weight:700; color:var(--crimson);">${formatRupiah(pengeluaran)}</div>
+        </div>
+    </div>
+  </div>
+  
+  ${render3Rules()}
+
+  ${state.settings.showSIP ? `
+  <div class="section-title">SIP (Sistem Instruksi Pribadi)</div>
+  <div class="card">
+      <div class="sip-panel" style="${getTodayActiveShift() === 'pagi' || getTodayActiveShift() === 'libur' ? 'border-color:var(--cyan); box-shadow:inset 0 0 8px rgba(45,212,244,0.1);' : ''}"><div class="sip-title">SIP PAGI <button class="btn btn-ghost btn-sm" onclick="openModal('modal-sip-pagi')" ${state.sip.pagi.status==='done'?'disabled':''}>Buka</button></div><div class="sip-status">Status: ${state.sip.pagi.status==='done'?'<span style="color:var(--jade);">✔ Selesai</span>':'<span style="color:var(--orange);">Belum Evaluasi</span>'}</div></div>
+      <div class="sip-panel" style="${getTodayActiveShift() === 'siang' ? 'border-color:var(--cyan); box-shadow:inset 0 0 8px rgba(45,212,244,0.1);' : ''}"><div class="sip-title">SIP SIANG <button class="btn btn-ghost btn-sm" onclick="openModal('modal-sip-siang')" ${state.sip.siang.status==='done'?'disabled':''}>Buka</button></div><div class="sip-status">Status: ${state.sip.siang.status==='done'?'<span style="color:var(--jade);">✔ Selesai</span>':'<span style="color:var(--orange);">Belum Evaluasi</span>'}</div></div>
+  </div>` : ''}
+
+  ${renderTodos()}
+
+  <div class="section-title">Quest Hari Ini${state.character.recoveryMode?' · Core Habit':''}</div>
+  ${todaysQuests.length===0 ? `<div class="empty-state card"><span class="big">Belum ada quest harian</span>Tambahkan quest pertamamu di tab Quest.</div>` : todaysQuests.map(q=>questCardHTML(q,true)).join('')}
+  ${dailyQuests.length>5 ? `<button class="btn btn-ghost btn-block" onclick="setTab('quests')">Lihat semua quest →</button>` : ''}
+  ${renderHabits()}
+
+  <div class="section-title row-between"><span>Ritual Spiritual & Kustom</span><button class="icon-btn" onclick="addCustomRitual()"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button></div>
+  <div class="card">
+    <div class="spirit-grid">
+      ${SPIRITUAL_ACTIONS.map(a => renderRitualButton(a)).join('')}
+      ${state.customRituals.map(a => renderRitualButton(a, true)).join('')}
+    </div>
+  </div>
+  `;
+}
+
+function questCardHTML(q, compact){
+  const tmeta = TYPE_META[q.type] || TYPE_META.custom; const exp = rewardFor(q);
+  const statsHtml = (q.stats||[]).map(s=> statDef(s) ? `<span class="stat-chip">${statDef(s).label}</span>` : '').join('');
+  let actions = ''; const remaining = getRemainingCompletions(q); const isDailyDone = q.dailyLimit && !canCompleteQuestToday(q);
+  const badgeHTML = isDailyDone ? `<span class="pill" style="background:rgba(52,211,153,0.15);color:var(--jade);">✓ Selesai Hari Ini</span>` : (q.dailyLimit ? `<span class="pill" style="background:rgba(255,255,255,0.05);color:var(--muted);">Sisa: ${remaining}x</span>` : '');
+  const btnDisabled = isDailyDone ? 'disabled' : '';
+
+  if(q.status==='pending'){
+    actions = `<button class="btn btn-primary btn-sm" ${btnDisabled} onclick="completeQuest('${q.id}')">✓ Selesai</button><button class="btn btn-ghost btn-sm" onclick="postponeQuest('${q.id}')">Tunda</button><button class="btn btn-danger btn-sm" onclick="failQuest('${q.id}')">Gagal</button>`;
+  } else if(q.status==='done'){ actions = `<span class="pill" style="background:rgba(52,211,153,0.15);color:var(--jade);">✓ Selesai</span>`; } 
+  else if(q.status==='failed'){ actions = `<button class="btn btn-ghost btn-sm" onclick="resetQuestStatus('${q.id}')">↺ Coba Lagi</button>`; } 
+  else if(q.status==='postponed'){ actions = `<button class="btn btn-ghost btn-sm" onclick="resetQuestStatus('${q.id}')">↺ Aktifkan</button>`; }
+  return `
+  <div class="quest-card ${tmeta.cls} status-${q.status} ${q.type==='legendary'?'is-legendary':''}">
+    <div class="quest-title-row">
+      <div class="quest-title">${escapeHtml(q.title)}${q.isCore?'<div class="quest-core-tag">CORE HABIT</div>':''}</div>
+      <div>
+        <button class="icon-btn" onclick="openEditQuest('${q.id}')" title="Edit"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+        <button class="icon-btn" onclick="deleteQuestConfirm('${q.id}')" title="Hapus"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg></button>
+      </div>
+    </div>
+    <div class="quest-meta"><span class="pill" style="background:rgba(124,92,255,0.12);color:var(--arise-bright);">${tmeta.label}</span><span class="quest-reward">+${exp} EXP</span> ${badgeHTML}</div>
+    ${statsHtml ? `<div class="quest-stats">${statsHtml}</div>` : ''} ${q.notes ? `<div class="quest-notes">${escapeHtml(q.notes)}</div>` : ''}
+    <div class="quest-actions">${actions}</div>
+  </div>`;
+}
+
+function renderQuests(){
+  const filter = state.ui.questFilter || 'all'; const filters = [['all','Semua'],['daily','Harian'],['weekly','Mingguan'],['monthly','Bulanan'],['special','Spesial'],['legendary','Legendary'],['custom','Custom']];
+  let list = state.quests.slice(); if(filter!=='all') list = list.filter(q=>q.type===filter);
+  const order = {pending:0, postponed:1, failed:2, done:3}; list.sort((a,b)=> (order[a.status]-order[b.status]) || (b.createdAt-a.createdAt));
+  return `<div class="quest-filters">${filters.map(([key,label])=>`<button class="chip ${filter===key?'active':''}" onclick="setQuestFilter('${key}')">${label}</button>`).join('')}</div><button class="btn btn-primary btn-block" style="margin-bottom:16px;" onclick="openAddQuestModal()">+ Tambah Quest</button>${list.length===0 ? `<div class="empty-state card"><span class="big">Tidak ada quest</span>Coba filter lain atau tambahkan quest baru.</div>` : list.map(q=>questCardHTML(q,false)).join('')}`;
+}
+function setQuestFilter(key){ state.ui.questFilter = key; save(); render(); }
+
+function renderGoals(){
+  const goals = state.goals.slice().sort((a,b)=> (a.status==='done')-(b.status==='done') || b.createdAt-a.createdAt);
+  const cards = goals.map(g=>{
+    const pct = Math.max(0,Math.min(100, Math.round(100*g.current/(g.target||1)))); const dots = [25,50,75,100].map(m=>`<div class="mini-dot ${pct>=m?'done':''}"></div>`).join('');
+    let deadlineHtml = ''; if(g.deadline) { const dLeft = diffDays(todayStr(), g.deadline); if(g.status === 'done') deadlineHtml = ''; else if(dLeft > 0) deadlineHtml = `<div class="small mt-10" style="color:var(--orange); font-weight:700;">⏳ Sisa: ${dLeft} Hari</div>`; else if(dLeft === 0) deadlineHtml = `<div class="small mt-10" style="color:var(--crimson); font-weight:700; animation:pulseOpacity 1s infinite;">⚠️ DEADLINE HARI INI!</div>`; else deadlineHtml = `<div class="small mt-10" style="color:var(--crimson); font-weight:700;">🚨 TERLAMBAT ${Math.abs(dLeft)} HARI</div>`; }
+    return `<div class="card goal-card ${g.status==='done'?'status-done':''}">
+        <div class="row-between">
+            <span style="font-weight:600;font-size:13.5px;">${escapeHtml(g.title)}</span>
+            <div>
+              <button class="icon-btn" onclick="openEditGoal('${g.id}')"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+              <button class="icon-btn" onclick="deleteGoalConfirm('${g.id}')"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg></button>
+            </div>
+        </div>
+        ${g.notes ? `<div class="quest-notes">${escapeHtml(g.notes)}</div>` : ''}
+        <div class="row-between small mt-10"><span class="muted">${g.current} / ${g.target} ${escapeHtml(g.unit)}</span><span class="muted">${pct}%</span></div>
+        <div class="stat-track mt-10"><div class="stat-fill" style="width:${pct}%;background:${g.status==='done'?'var(--jade)':'var(--arise)'}"></div></div>
+        <div class="mini-dot-row">${dots}</div>${deadlineHtml}
+        ${g.status!=='done' ? `<div style="display:flex; gap:6px; margin-top:10px;"><button class="btn btn-primary" style="flex:1;" onclick="openUpdateGoal('${g.id}')">Update</button><button class="btn btn-secondary" style="flex:0 0 auto; width:40px; padding:0;" onclick="quickAddGoal('${g.id}')" title="Quick +1">+1</button></div>` : `<div class="small mt-10" style="color:var(--jade);font-weight:700;">✓ Goal Tercapai</div>`}
+    </div>`;
+  }).join('');
+  return `<div class="section-title">Tujuan / Goals</div><button class="btn btn-primary btn-block" style="margin-bottom:16px;" onclick="openAddGoal()">+ Tambah Goal</button>${goals.length===0 ? `<div class="empty-state card"><span class="big">Belum ada goal</span>Tambahkan goal pertamamu.</div>` : cards}`;
+}
+
+function renderStats(){
+  const grouped = allStatDefsGrouped(); const groups = STAT_GROUPS.filter(g=>grouped[g] && grouped[g].length).map(g=>`<div class="stat-group-label">${g}</div>` + grouped[g].map(statBarHTML).join('')).join('');
+  const achHtml = ACHIEVEMENT_DEFS.map(def=>{ const unlocked = state.achievementsUnlocked.includes(def.id); return `<div class="ach-item ${unlocked?'unlocked':'locked'}"><div class="ach-icon">${def.icon}</div><div class="ach-label">${escapeHtml(def.label)}</div>${!unlocked ? `<div class="small muted" style="margin-top:3px;">${escapeHtml(def.hint)}</div>` : ''}</div>`; }).join('');
+  const titleHtml = Array.from(new Set(['The Beginner',...Object.keys(TITLE_HINTS)])).map(name=>{ const unlocked = state.character.titlesUnlocked.includes(name); const equipped = state.character.equippedTitle===name; return `<div class="title-item ${unlocked?'':'locked'} ${equipped?'equipped':''}" ${unlocked?`onclick="equipTitle('${name}')"`:''} style="${getTitleStyle(name)}"><div><div class="title-name">${escapeHtml(name)}</div><div class="title-hint" style="color:inherit; opacity:0.8;">${escapeHtml(TITLE_HINTS[name]||'Gelar awal')}</div></div>${equipped ? `<span class="pill" style="background:rgba(255,255,255,0.2);color:inherit;cursor:pointer;">DIPAKAI</span>` : (unlocked?`<span class="small" style="opacity:0.8;cursor:pointer;font-weight:700;">PAKAI</span>`:'')}</div>`; }).join('');
+  const customStatRows = state.customStats.map(cs=>`<div class="realm-row"><span class="idx">${getGroupIcon(cs.group)}</span><span style="flex:1.4;font-size:12.5px;">${escapeHtml(cs.label)} <span class="small muted">(${escapeHtml(cs.group)})</span></span><button class="icon-btn" onclick="deleteCustomStat('${cs.key}')"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg></button></div>`).join('');
+  const streakBadge = state.character.streak >= 7 ? `<div style="background:linear-gradient(90deg, var(--orange), var(--crimson)); padding:10px 14px; border-radius:12px; margin-bottom:14px; color:#fff; font-weight:700; font-family:var(--font-system); font-size:14px; display:flex; align-items:center; justify-content:space-between; animation:pulseGlow 2s infinite; border:1px solid #fff;"><span>🔥 ${state.character.streak} HARI STRIKE AKTIF!</span><span style="font-size:18px; filter:drop-shadow(0 0 4px #fff);">🏆</span></div>` : '';
+  return `${renderCalendar()}${renderDailyTimeline()}<div class="section-title">Character Stats</div><div class="card">${groups}</div><div class="card"><div class="card-title">Stat Kustom</div>${customStatRows || '<div class="small muted">Belum ada stat kustom.</div>'}<button class="btn btn-ghost btn-block mt-10" onclick="openModal('modal-add-stat')">+ Tambah Stat</button></div><div class="section-title">Achievements</div><div class="ach-grid">${achHtml}</div><div class="section-title">Titles & Julukan</div>${streakBadge}${titleHtml}`;
+}
+function statBarHTML(key){ const meta = statDef(key); if(!meta) return ''; const val = state.stats[key]||0; const pct = Math.max(2, Math.min(100,val)); const icon = getGroupIcon(meta.group); return `<div class="stat-row"><div class="stat-row-top"><span class="stat-name">${icon} ${meta.label}</span><span class="stat-val">${val}</span></div><div class="stat-track"><div class="stat-fill" style="width:${pct}%;background:${meta.color}"></div></div></div>`; }
+function addCustomStat(){ const labelEl = document.getElementById('as-label'); const label = labelEl.value.trim(); if(!label) return; const group = document.getElementById('as-group').value; const key = 'custom_'+label.toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'')+'_'+Math.random().toString(36).slice(2,5); const colorMap = {Body:'var(--jade)',Mind:'var(--cyan)',Social:'var(--arise-bright)',Soul:'var(--gold)',Finansial:'var(--gold)',Custom:'var(--orange)'}; state.customStats.push({key, label, group, color: colorMap[group]||'var(--orange)'}); state.stats[key] = 0; labelEl.value=''; closeModal('modal-add-stat'); buildModals(); render(); save(); }
+function deleteCustomStat(key){ const cs = state.customStats.find(s=>s.key===key); if(!cs) return; openConfirm('Hapus stat kustom "'+escapeHtml(cs.label)+'"?', ()=>{ state.customStats = state.customStats.filter(s=>s.key!==key); delete state.stats[key]; buildModals(); render(); save(); }); }
+
+function renderBoss(){
+    const b = state.boss; const pct = Math.min(100, ((b.maxHp - b.currentHp) / b.maxHp) * 100).toFixed(1); 
+    const defeated = b.currentHp <= 0;
+    
+    // Pemasukan / Pengeluaran General
+    const logHtml = (state.financeLog||[]).length ? (state.financeLog||[]).slice(0,10).map(l=>{
+        const isOut = l.type === 'out';
+        return `<div class="log-item"><span class="muted">${l.date}${l.note?' · '+escapeHtml(l.note):''}</span><span class="log-amount" style="color:${isOut?'var(--crimson)':'var(--jade)'}">${isOut?'-':'+'}${formatRupiah(l.amount)}</span></div>`;
+    }).join('') : `<div class="small muted" style="text-align:center;padding:10px 0;">Belum ada catatan transaksi. Mulai mencatat!</div>`;
+    
+    const pengeluaran = (state.financeLog||[]).filter(l => l.type === 'out').reduce((sum, l) => sum + l.amount, 0);
+    const sEntries = state.sedekah?.entries || []; const sedekahLogHtml = sEntries.length ? sEntries.slice(0,10).map(e=>`<tr><td>${e.date}</td><td style="color:var(--gold);">Rp ${e.nominal.toLocaleString()}</td><td>+${e.expGained}</td><td>${escapeHtml(e.note)}</td></tr>`).join('') : `<tr><td colspan="4" style="text-align:center;color:var(--muted);">Belum ada riwayat sedekah</td></tr>`;
+    
+    // Riwayat Target Finansial (Boss History)
+    const bossHistHtml = (state.bossHistory||[]).length ? (state.bossHistory||[]).map(h => `<div class="log-item" style="flex-direction:column; align-items:flex-start; gap:4px;"><div class="row-between" style="width:100%;"><span style="color:var(--gold); font-weight:700; font-family:var(--font-display);">${escapeHtml(h.name)}</span><span class="pill" style="background:rgba(52,211,153,0.15);color:var(--jade);">✓ Tercapai</span></div><div class="row-between small muted" style="width:100%;"><span>Target: ${formatRupiah(h.target)}</span><span>${h.date} ${h.time}</span></div></div>`).join('') : '<div class="small muted" style="text-align:center;padding:10px 0;">Belum ada target yang diselesaikan.</div>';
+
+    let html = `
+    <!-- Custom Target Khusus -->
+    <div class="card boss-card glass-panel" style="background: linear-gradient(135deg, rgba(124,92,255,0.05), transparent);">
+      <div class="boss-name" style="font-family:var(--font-display);font-weight:800;display:flex;justify-content:center;align-items:center;gap:8px;">
+        <span style="font-size:28px;">🎯</span> ${escapeHtml(b.name)}
+      </div>
+      <div class="commerce-metric"><div class="lbl">Sisa Menuju Target</div><div class="val highlight">${formatRupiah(b.currentHp)}</div></div>
+      <div class="boss-hp-track" style="margin-top:14px; border-color: rgba(124,92,255,0.5);"><div class="boss-hp-fill" style="width:${pct}%; background:linear-gradient(90deg, var(--cyan), var(--arise-bright));"></div><div class="boss-hp-text">${pct}% COMPLETED</div></div>
+      ${defeated ? `<button class="btn btn-gold btn-block mt-14" onclick="openModal('modal-new-boss')">+ Set Target Spesifik Baru</button>` : `
+      <div style="display:flex; gap:10px; margin-top:14px;">
+        <button class="btn btn-primary" style="flex:1;" onclick="openModal('modal-update-boss')">+ Progress Target</button>
+        <button class="btn btn-secondary" style="flex:1;" onclick="openModal('modal-new-boss')">Edit Target</button>
+      </div>`}
+    </div>
+    
+    <!-- Pemasukan & Pengeluaran -->
+    <div class="card boss-card glass-panel" style="background: linear-gradient(135deg, rgba(240,185,59,0.05), transparent);">
+      <div class="boss-name" style="font-family:var(--font-display);font-weight:800;display:flex;justify-content:center;align-items:center;gap:8px;"><span style="font-size:28px;">💰</span> Pemasukan & Pengeluaran</div>
+      <div class="commerce-grid">
+        <div class="commerce-metric"><div class="lbl">Total Pemasukan</div><div class="val highlight">${formatRupiah(state.character.lifetimeIncome||0)}</div></div>
+        <div class="commerce-metric" style="border-color: rgba(255,71,104,0.3);"><div class="lbl">Pengeluaran</div><div class="val" style="color:var(--crimson);">${formatRupiah(pengeluaran)}</div></div>
+      </div>
+      <button class="btn btn-gold btn-block mt-14" onclick="openModal('modal-log-income')">Catat Transaksi (In/Out)</button>
+    </div>
+
+    <div class="card" id="section-sedekah" style="border-top:3px solid var(--gold);"><h3 class="card-title" style="color:var(--gold);">🌙 Sedekah & Amal</h3><div class="small muted mb-14" style="text-align:center;">Total Seumur Hidup: <b>Rp ${(state.sedekah?.totalLifetime || 0).toLocaleString()}</b></div><div class="form-row"><input id="sedekah-nominal" type="number" class="input" placeholder="Nominal (Rp)"><input id="sedekah-date" type="date" class="input" value="${todayStr()}"></div><input id="sedekah-note" type="text" class="input mt-10" placeholder="Catatan/Tujuan (opsional)..."><button class="btn btn-gold btn-block mt-10" onclick="addSedekah()">Catat Sedekah</button><table class="stats-table" style="margin-top:1rem;"><thead><tr><th>Tgl</th><th>Nominal</th><th>EXP</th><th>Catatan</th></tr></thead><tbody>${sedekahLogHtml}</tbody></table></div>
+    <div class="section-title">Tren Momentum Pemasukan (7 Hari)</div><div class="card glass-panel"><div class="chart-container"><canvas id="daoChart"></canvas></div></div>
+    <div class="section-title">Riwayat Target Finansial</div><div class="card">${bossHistHtml}</div>
+    <div class="section-title">Riwayat Transaksi Terbaru</div><div class="card">${logHtml}</div>`;
+    setTimeout(initDaoChart, 150); return html;
+}
+function initDaoChart() {
+    const ctx = document.getElementById('daoChart'); if(!ctx) return; if(daoChart) daoChart.destroy();
+    const dailyIncome = {}; (state.financeLog||[]).forEach(l => { if(l.type !== 'out') { if(!dailyIncome[l.date]) dailyIncome[l.date] = 0; dailyIncome[l.date] += l.amount; }});
+    const labels = []; const data = []; for(let i=6; i>=0; i--) { let d = new Date(); d.setDate(d.getDate() - i); labels.push(d.toLocaleDateString('id-ID', {weekday:'short'})); data.push(dailyIncome[d.toLocaleDateString('en-CA')] || 0); }
+    Chart.defaults.color = '#9492AC'; Chart.defaults.font.family = "'Rajdhani', sans-serif";
+    daoChart = new Chart(ctx, { type: 'line', data: { labels: labels, datasets: [{ label: 'Pemasukan (Rp)', data: data, borderColor: '#F0B93B', backgroundColor: 'rgba(240, 185, 59, 0.15)', borderWidth: 2, tension: 0.4, fill: true, pointBackgroundColor: '#F0B93B', pointBorderColor: '#fff' }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { callback: function(value) { if(value >= 1000000) return (value / 1000000).toFixed(1) + 'M'; if(value >= 1000) return (value / 1000).toFixed(1) + 'K'; return value; }, font:{size:10} } }, x: { grid: { display: false } } }, plugins: { legend: { display: false }, tooltip: { callbacks: { label: (ctx) => formatRupiah(ctx.raw) } } } } });
+}
+
+function renderProjectKanban() {
+    const cols = [ { id: 'mau_dipelajari', title: '📚 Mau Dipelajari', color:'var(--muted)' }, { id: 'sedang_dipelajari', title: '🔥 Sedang Dipelajari', color:'var(--cyan)' }, { id: 'direview', title: '🔍 Direview / Diulang', color:'var(--gold)' }, { id: 'selesai', title: '✅ Selesai & Diterapkan', color:'var(--arise)' } ];
+    let html = `<div class="section-title">Papan Pengetahuan & Projek</div><div class="small muted" style="margin-bottom:14px;">Drag & Drop kartu. Kelola tahapan belajar/projek Anda di sini. Klik kartu untuk edit detail.</div><div class="kanban-board">`;
+    cols.forEach(col => {
+        const cards = (state.kanban.cards || []).filter(c => c.col === col.id);
+        let cardsHtml = cards.map(c => `<div class="kanban-card" draggable="true" ondragstart="kDragStart(event, '${c.id}')" ondragend="kDragEnd(event)" onclick="openEditCard('${c.id}')">
+            <div style="font-weight:700; margin-bottom:6px;">${escapeHtml(c.title)}</div>
+            <div style="display:flex; justify-content:space-between; font-size:10px; margin-bottom:8px;"><span class="pill" style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2);">${escapeHtml(c.type)}</span><span style="color:var(--muted);">${escapeHtml(c.dateTarget)}</span></div>
+            ${c.progress > 0 ? `<div class="stat-track" style="margin-bottom:6px;"><div class="stat-fill" style="width:${c.progress}%; background:${col.color};"></div></div>` : ''}
+            <div style="display:flex; gap:6px; margin-top:8px;">
+               <button class="btn btn-secondary btn-sm" style="flex:1; padding:4px;" onclick="event.stopPropagation(); addProjectProgress('${c.id}')">+ Progress</button>
+            </div>
+            </div>`).join('');
+        html += `<div class="kanban-col" data-col="${col.id}" ondragover="kDragOver(event)" ondragleave="kDragLeave(event)" ondrop="kDrop(event, '${col.id}')"><div class="kanban-col-title"><span style="color:${col.color}">${col.title}</span> <span style="color:var(--muted); font-size:12px;">${cards.length}</span></div><div class="kanban-cards" id="col-${col.id}">${cardsHtml}</div><button class="kanban-add-btn" onclick="openAddCard('${col.id}')">+ Tambah Projek</button></div>`;
+    });
+    return html + `</div>`;
+}
+
+// Menghitung EXP project berdasarkan lama pengerjaan (Kecil, Menengah, Besar)
+function getProjectReward(card) {
+    const start = card.dateStart || new Date(card.createdAt).toLocaleDateString('en-CA');
+    const duration = Math.max(1, diffDays(start, todayStr()));
+    if(duration <= 7) return 500 + (duration * 20); // Project Kecil
+    if(duration <= 30) return 1500 + (duration * 30); // Project Menengah
+    return 5000 + (duration * 50); // Project Besar
+}
+
+function addProjectProgress(id) {
+    const c = state.kanban.cards.find(x=>x.id===id); if(!c) return;
+    c.progress = Math.min(100, c.progress + 10);
+    gainExp(10); 
+    if(c.progress === 100 && c.col !== 'selesai') {
+        c.col = 'selesai';
+        const expGain = getProjectReward(c);
+        gainExp(expGain);
+        showToast('Project Selesai! +'+expGain+' EXP', 'ach');
+        SFX.victory();
+    } else {
+        SFX.click();
+    }
+    render(); save();
+}
+
+let draggedKanbanId = null;
+function kDragStart(e, id) { draggedKanbanId = id; setTimeout(() => e.target.classList.add('dragging'), 0); e.dataTransfer.setData('text/plain', id); }
+function kDragEnd(e) { e.target.classList.remove('dragging'); }
+function kDragOver(e) { e.preventDefault(); e.currentTarget.classList.add('drag-over'); }
+function kDragLeave(e) { e.currentTarget.classList.remove('drag-over'); }
+function kDrop(e, colId) { 
+    e.preventDefault(); e.currentTarget.classList.remove('drag-over'); const id = e.dataTransfer.getData('text/plain') || draggedKanbanId; if(!id) return; 
+    const card = state.kanban.cards.find(c => c.id === id); 
+    if(card && card.col !== colId) { 
+        card.col = colId; addActivityLog(`Materi Pindah: ${card.title} ke ${colId}`); save(); render(); if(navigator.vibrate) navigator.vibrate(50); 
+        if(colId === 'selesai') { 
+            const expGain = getProjectReward(card);
+            showToast(`Materi Selesai! Insight Bertambah (+${expGain} EXP)`, 'ach'); 
+            gainExp(expGain); 
+            SFX.victory();
+        } 
+    } 
+}
+
+let _editingCardId = null;
+function openAddCard(colId){ _editingCardId = null; document.getElementById('modal-card-title').textContent = 'Tambah Pengetahuan / Projek'; document.getElementById('km-title').value = ''; document.getElementById('km-type').value = 'Buku'; document.getElementById('km-dateStart').value = todayStr(); document.getElementById('km-dateTarget').value = ''; document.getElementById('km-progress').value = 0; document.getElementById('card-prog-val').textContent = '0'; document.getElementById('km-notes').value = ''; document.getElementById('card-modal-col').value = colId || 'mau_dipelajari'; openModal('modal-kanban-edit'); }
+function openEditCard(cardId){ const card = (state.kanban?.cards || []).find(c => c.id === cardId); if(!card) return; _editingCardId = cardId; document.getElementById('modal-card-title').textContent = 'Edit Pengetahuan / Projek'; document.getElementById('km-title').value = card.title || ''; document.getElementById('km-type').value = card.type || 'Lainnya'; document.getElementById('km-dateStart').value = card.dateStart || ''; document.getElementById('km-dateTarget').value = card.dateTarget || ''; document.getElementById('km-progress').value = card.progress || 0; document.getElementById('card-prog-val').textContent = card.progress || 0; document.getElementById('km-notes').value = card.notes || ''; document.getElementById('card-modal-col').value = card.col || 'mau_dipelajari'; openModal('modal-kanban-edit'); }
+function submitCardModal(){ const title = document.getElementById('km-title').value.trim(); if(!title){ alert('Judul tidak boleh kosong.'); return; } if(_editingCardId){ const card = (state.kanban?.cards || []).find(c => c.id === _editingCardId); if(card){ card.title = title; card.col = document.getElementById('card-modal-col').value; card.type = document.getElementById('km-type').value; card.dateStart = document.getElementById('km-dateStart').value; card.dateTarget= document.getElementById('km-dateTarget').value; card.progress = parseInt(document.getElementById('km-progress').value, 10) || 0; card.notes = document.getElementById('km-notes').value.trim(); } } else { if(!state.kanban) state.kanban = { cards:[] }; state.kanban.cards.push({ id: Date.now().toString(), col: document.getElementById('card-modal-col').value, title, type: document.getElementById('km-type').value, dateStart: document.getElementById('km-dateStart').value, dateTarget: document.getElementById('km-dateTarget').value, progress: parseInt(document.getElementById('km-progress').value, 10) || 0, notes: document.getElementById('km-notes').value.trim(), createdAt: new Date().toISOString(), }); } closeModal('modal-kanban-edit'); render(); save(); }
+function deleteCardFromModal(){ if(!_editingCardId) return; if(!confirm('Hapus item ini?')) return; state.kanban.cards = (state.kanban?.cards || []).filter(c => c.id !== _editingCardId); closeModal('modal-kanban-edit'); render(); save(); }
+
+function shiftBtn(day, val, icon, label) {
+    const active = state.weeklyShiftPlan[day] === val;
+    return `<button class="btn btn-secondary ${active?'active':''}" style="flex:1; padding:6px; font-size:11px;" onclick="updateWeeklyShift('${day}','${val}')">${icon} ${label}</button>`;
+}
+
+function renderProfile(){
+  const c = state.character; const s = state.settings; const blocks = state.schedule[c.shift] || [];
+  const schedHtml = blocks.map((b,i)=>`<div class="realm-row"><input type="text" value="${escapeAttr(b.time)}" style="flex:0.85;font-size:11.5px;" onchange="updateScheduleBlock('${c.shift}', ${i}, 'time', this.value)"><input type="text" value="${escapeAttr(b.label)}" style="flex:1.6;font-size:12px;" onchange="updateScheduleBlock('${c.shift}', ${i}, 'label', this.value)"><button class="icon-btn" onclick="deleteScheduleBlock('${c.shift}', ${i})" title="Hapus"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg></button></div>`).join('');
+  let realmGroups = {1:[], 2:[], 3:[], 4:[]}; state.realms.forEach((r,i) => { realmGroups[realmStep(i)].push({r,i}); });
+  let realmHtml = '';
+  for(let t=1; t<=4; t++) { if(realmGroups[t].length > 0) { const si = realmStepInfo(t); realmHtml += `<div class="realm-step-header">${si.label} — ${si.realmID}</div>`; realmGroups[t].forEach(({r,i}) => { const active = i === state.character.realmIndex ? 'active' : ''; const done = i < state.character.realmIndex ? 'done' : ''; realmHtml += `<div class="realm-row ${active} ${done}"><span class="idx">${i+1}</span><div class="realm-name-en"><b>${escapeHtml(r.name)}</b><br><span style="color:var(--muted); font-size:10px;">${escapeHtml(r.desc)}</span></div><span class="realm-req">${r.reqEnergy.toLocaleString()} Energy</span></div>`; }); } }
+
+  const map = ['senin','selasa','rabu','kamis','jumat','sabtu','minggu'];
+  let shiftPlanHtml = map.map(day => `
+      <div class="shift-editor-row" style="flex-direction:column; align-items:flex-start;">
+          <span class="shift-day-label" style="margin-bottom:6px;">${day}</span>
+          <div class="btn-group" style="width:100%; display:flex;">
+             ${shiftBtn(day, 'pagi', '☀️', 'Pagi')}
+             ${shiftBtn(day, 'siang', '🌅', 'Siang')}
+             ${shiftBtn(day, 'libur', '🌙', 'Libur')}
+             ${shiftBtn(day, 'custom', '⚙️', 'Custom')}
+          </div>
+      </div>
+  `).join('');
+
+  return `<div class="card glass-panel"><div class="row gap-10"><div style="width:48px;height:48px;border-radius:50%;background:${c.avatarColor || 'linear-gradient(135deg,var(--arise),var(--cyan))'};flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:700;color:#0a0a14;font-size:18px;">${(s.characterAvatar || '⚔️')}</div><div><div style="font-family:var(--font-display);font-weight:600;font-size:15px;">${escapeHtml(c.name)}</div><div class="small muted">${c.age||22} tahun · ${escapeHtml(c.job||'Pejuang')} · ${escapeHtml(c.equippedTitle)}</div></div></div></div>
+  <div class="section-title">Riwayat Aktivitas & Performa</div>
+  <div class="card">
+    <div class="row-between small"><span class="muted">Quest Berhasil</span><span style="color:var(--jade)">${c.totalQuests||0}</span></div>
+    <div class="row-between small mt-10"><span class="muted">Quest Gagal</span><span style="color:var(--crimson)">${c.failedQuests||0}</span></div>
+    <div class="row-between small mt-10" style="border-top:1px solid rgba(255,255,255,0.05); padding-top:10px;"><span class="muted">Goal Tercapai</span><span style="color:var(--cyan)">${c.goalsCompleted||0}</span></div>
+    <div class="row-between small mt-10"><span class="muted">Goal Gagal/Terlewat</span><span style="color:var(--crimson)">${c.failedGoals||0}</span></div>
+    <div class="row-between small mt-10" style="border-top:1px solid rgba(255,255,255,0.05); padding-top:10px;"><span class="muted">Target Finansial Tembus</span><span style="color:var(--gold)">${c.bossesDefeated||0}</span></div>
+    <div class="row-between small mt-10"><span class="muted">Project Terlewat</span><span style="color:var(--crimson)">${c.failedProjects||0}</span></div>
+    <div class="row-between small mt-10"><span class="muted">Streak Terpanjang</span><span>${c.longestStreak||0} hari</span></div>
+  </div>
+  <div class="section-title">Energy Realm Tracker</div><div class="card">${realmHtml}</div><div class="section-title">Manajemen Shift Mingguan</div><div class="card"><div class="small muted mb-14">Atur roster mingguan Anda di sini. Jadwal akan terganti otomatis mengikuti hari.</div>${shiftPlanHtml}<div style="height:1px; background:var(--border); margin:16px 0;"></div><div class="shift-toggle"><div class="shift-opt ${c.shift==='pagi'?'active':''}" onclick="setShift('pagi')">Edit Jadwal Pagi</div><div class="shift-opt ${c.shift==='siang'?'active':''}" onclick="setShift('siang')">Edit Jadwal Siang</div><div class="shift-opt ${c.shift==='custom'?'active':''}" onclick="setShift('custom')">Edit Custom</div></div><div class="mt-10">${schedHtml}</div><button class="btn btn-ghost btn-block mt-10" onclick="addScheduleBlock('${c.shift}')">+ Tambah Blok Waktu</button><button class="btn btn-ghost btn-block mt-10" onclick="resetSchedule('${c.shift}')">Reset Jadwal ke Default</button></div>`;
+}
+function setShift(shift){ state.character.shift = shift; render(); save(); }
+function updateWeeklyShift(day, val) { state.weeklyShiftPlan[day] = val; render(); save(); }
+function updateScheduleBlock(shift, i, field, val){ if(!state.schedule[shift] || !state.schedule[shift][i]) return; state.schedule[shift][i][field] = val; save(); updateTimeBlockUI(); }
+function deleteScheduleBlock(shift, i){ if(!state.schedule[shift]) return; state.schedule[shift].splice(i,1); render(); save(); updateTimeBlockUI(); }
+function addScheduleBlock(shift){ if(!state.schedule[shift]) state.schedule[shift]=[]; state.schedule[shift].push({time:'00:00–00:00', label:'Blok baru'}); render(); save(); }
+function resetSchedule(shift){ openConfirm('Reset jadwal shift ini ke default?', ()=>{ if(DEFAULT_SCHEDULE[shift]) state.schedule[shift] = JSON.parse(JSON.stringify(DEFAULT_SCHEDULE[shift])); else state.schedule[shift] = []; render(); save(); }); }
+
+function calcHabitRateWeek(daysAgoStart, daysAgoEnd = 0) {
+   if(!state.habits || state.habits.length === 0) return 0; let possible = 0; let done = 0;
+   for(let i = daysAgoStart - 1; i >= daysAgoEnd; i--) { let d = new Date(); d.setDate(d.getDate() - i); let dStr = d.toLocaleDateString('en-CA'); state.habits.forEach(h => { possible++; if(h.log && h.log[dStr]) done++; }); }
+   return possible === 0 ? 0 : Math.round((done/possible)*100);
+}
+function renderStatisticsTable() {
+    let weeklyActivity = 0; let lastWeeklyActivity = 0; let weeklyIncome = 0; let lastWeeklyIncome = 0;
+    const today = new Date(); const weekAgo = new Date(today - 7*86400000); const twoWeeksAgo = new Date(today - 14*86400000);
+    const cutOffStr = weekAgo.toLocaleDateString('en-CA'); const twoWeeksAgoStr = twoWeeksAgo.toLocaleDateString('en-CA');
+    for (const [date, count] of Object.entries(state.meta.activityLog || {})) { if(date >= cutOffStr) weeklyActivity += count; else if(date >= twoWeeksAgoStr) lastWeeklyActivity += count; }
+    (state.financeLog||[]).forEach(l => { if(l.date >= cutOffStr) weeklyIncome += l.amount; else if(l.date >= twoWeeksAgoStr) lastWeeklyIncome += l.amount; });
+    const sedekahThisWeek = (state.sedekah?.entries||[]).filter(e=>e.date>=cutOffStr).reduce((s,e)=>s+(e.nominal||0),0); const sedekahLastWeek = (state.sedekah?.entries||[]).filter(e=>e.date>=twoWeeksAgoStr && e.date<cutOffStr).reduce((s,e)=>s+(e.nominal||0),0);
+    const habitRate = calcHabitRateWeek(7); const habitRateLast = calcHabitRateWeek(14, 7);
+    function delta(a, b){ if(a > b) return '<span style="color:var(--jade)">▲</span>'; if(a < b) return '<span style="color:var(--crimson)">▼</span>'; return '<span style="color:var(--muted)">—</span>'; }
+    let tbl1 = `<div class="section-title">📊 Ringkasan Mingguan</div><div class="card glass-panel" style="padding:0; overflow-x:auto;"><table class="stats-table"><thead><tr><th>Metrik</th><th>Minggu Ini</th><th>Minggu Lalu</th><th></th></tr></thead><tbody><tr><td>Aktivitas Total</td><td style="color:var(--cyan); font-weight:700;">${weeklyActivity}</td><td>${lastWeeklyActivity}</td><td>${delta(weeklyActivity,lastWeeklyActivity)}</td></tr><tr><td>Pemasukan Finansial</td><td style="color:var(--gold); font-weight:700;">${formatRupiah(weeklyIncome)}</td><td>${formatRupiah(lastWeeklyIncome)}</td><td>${delta(weeklyIncome,lastWeeklyIncome)}</td></tr><tr><td>Sedekah / Amal</td><td style="color:var(--arise-bright); font-weight:700;">${formatRupiah(sedekahThisWeek)}</td><td>${formatRupiah(sedekahLastWeek)}</td><td>${delta(sedekahThisWeek,sedekahLastWeek)}</td></tr><tr><td>Habit Rate (%)</td><td style="font-weight:700;">${habitRate}%</td><td>${habitRateLast}%</td><td>${delta(habitRate,habitRateLast)}</td></tr></tbody></table></div>`;
+    const statKeys = allStatKeys(); const sortedStats = statKeys.map(k => ({ k, def: statDef(k), val: state.stats[k] || 0 })).sort((a,b) => b.val - a.val);
+    const tbl2Rows = sortedStats.map(s => `<tr><td style="font-weight:600; color:var(--bone);">${s.def.label}</td><td style="color:var(--muted);">${s.def.group}</td><td style="color:${s.def.color||'var(--bone)'}; font-weight:700;">${s.val}</td></tr>`).join('');
+    return tbl1 + `<div class="section-title">⚔️ Character Stats (Ranked)</div><div class="card glass-panel" style="padding:0; overflow-x:auto;"><table class="stats-table"><thead><tr><th>Stat / Atribut</th><th>Grup</th><th>Nilai</th></tr></thead><tbody>${tbl2Rows}</tbody></table></div>`;
+}
+
+function renderSettingsModal(){
+  const s = state.settings;
+  return `
+  <div class="modal-overlay" id="modal-settings"><div class="modal-sheet settings-modal"><div class="modal-handle"></div><h2 class="modal-title">⚙️ Pengaturan OS</h2>
+    <details class="settings-section" open><summary>🧑 Profil Karakter</summary><div class="settings-body"><div class="form-group"><label>Nama Karakter</label><input id="s-char-name" type="text" class="input" value="${escapeAttr(state.character.name)}"></div><div class="form-group"><label>Pekerjaan</label><input id="s-char-job" type="text" class="input" value="${escapeAttr(state.character.job)}"></div><div class="form-group"><label>Umur</label><input id="s-char-age" type="number" class="input" value="${state.character.age}"></div><div class="form-group"><label>Avatar (Emoji)</label><input id="s-char-avatar" type="text" class="input" value="${escapeAttr(s.characterAvatar)}" maxlength="4" style="width:5rem"></div><button class="btn btn-secondary btn-block mt-10" onclick="saveSettingsProfile()">Simpan Profil</button></div></details>
+    <details class="settings-section"><summary>👁️ Tampilan & UI</summary><div class="settings-body">
+      <div class="toggle-row"><label>Tampilkan SIP</label><input type="checkbox" ${s.showSIP?'checked':''} onchange="setSetting('showSIP',this.checked)"></div>
+      <div class="toggle-row"><label>Tampilkan To-Do Cepat</label><input type="checkbox" ${s.showToDo?'checked':''} onchange="setSetting('showToDo',this.checked)"></div>
+      <div class="toggle-row"><label>Animasi Bintang (Background)</label><input type="checkbox" ${s.showBackgroundAnim?'checked':''} onchange="setSetting('showBackgroundAnim',this.checked)"></div>
+      <div class="toggle-row"><label>Kalender Mingguan</label><input type="checkbox" ${s.showWeeklyCalendar?'checked':''} onchange="setSetting('showWeeklyCalendar',this.checked)"></div>
+      <div class="toggle-row"><label>Matriks Eisenhower (To-Do)</label><input type="checkbox" ${s.showEisenhowerMatrix?'checked':''} onchange="setSetting('showEisenhowerMatrix',this.checked)"></div>
+      <div class="toggle-row"><label>Tampilkan 3 Aturan Anti-Gagal</label><input type="checkbox" ${s.show3Rules?'checked':''} onchange="setSetting('show3Rules',this.checked)"></div>
+    </div></details>
+    <details class="settings-section"><summary>⚔️ EXP & Gameplay</summary><div class="settings-body"><label style="display:block;font-size:11.5px;color:var(--muted);margin-bottom:5px;font-weight:600;">Multiplier EXP</label><div class="btn-group">${[0.5,1.0,1.5,2.0].map(m => `<button class="btn btn-secondary ${s.expMultiplier===m?'active':''}" onclick="setSetting('expMultiplier',${m})">${m}x</button>`).join('')}</div><div class="toggle-row"><label>Efek Suara (SFX)</label><input type="checkbox" ${s.soundEnabled?'checked':''} onchange="setSetting('soundEnabled',this.checked)"></div><div class="toggle-row"><label>Floating EXP Animasi</label><input type="checkbox" ${s.showFloatingExp?'checked':''} onchange="setSetting('showFloatingExp',this.checked)"></div><div class="toggle-row"><label>Combo Bonus</label><input type="checkbox" ${s.comboBonus?'checked':''} onchange="setSetting('comboBonus',this.checked)"></div><div class="toggle-row"><label>Streak Bonus</label><input type="checkbox" ${s.streakBonus?'checked':''} onchange="setSetting('streakBonus',this.checked)"></div></div></details>
+    <details class="settings-section"><summary>💾 Manajemen Data & Reset</summary><div class="settings-body"><div class="settings-btn-row"><button class="btn btn-primary" onclick="exportData()" style="flex:1;">📤 Export JSON</button><label class="btn btn-secondary" style="flex:1; cursor:pointer; text-align:center;">📥 Import JSON<input type="file" accept=".json" style="display:none;" onchange="importData(event)"></label></div><div class="settings-divider">Reset Per-Modul (Progres Aman)</div><div class="settings-btn-row"><button class="btn btn-secondary btn-sm" onclick="resetModule('todos')">Reset To-Do</button><button class="btn btn-secondary btn-sm" onclick="resetModule('kanban')">Reset Kanban</button><button class="btn-secondary btn-sm" onclick="resetModule('sedekah')">Reset Sedekah</button><button class="btn-secondary btn-sm" onclick="resetModule('habits')">Reset Habits</button></div><button class="btn btn-danger btn-block" onclick="confirmResetData()" style="margin-top:1rem">⚠️ RESET TOTAL (HAPUS SEMUA)</button></div></details>
+    <button class="btn btn-secondary btn-block mt-14" onclick="closeModal('modal-settings')">Tutup Pengaturan</button>
+  </div></div>`;
+}
+
+function setSetting(key, value){ if(!state.settings) state.settings = DEFAULT_SETTINGS(); state.settings[key] = value; save(); render(); document.getElementById('settings-slot').innerHTML = renderSettingsModal(); openModal('modal-settings'); }
+function saveSettingsProfile(){ state.character.name = document.getElementById('s-char-name').value.trim() || 'Jian'; state.character.job = document.getElementById('s-char-job').value.trim(); state.character.age = parseInt(document.getElementById('s-char-age').value) || 22; state.settings.characterAvatar = document.getElementById('s-char-avatar').value.trim() || '⚔️'; save(); render(); showToast('Profil disimpan!', 'ach'); }
+function resetModule(module){ const map = { todos: () => state.todos = [], kanban: () => state.kanban = { cards:[] }, sedekah: () => state.sedekah = { entries:[], totalLifetime:0, dailyExpGained:0, lastExpDate:'' }, habits: () => state.habits = DEFAULT_STATE().habits, }; if(!map[module]) return; openConfirm(`Reset modul "${module}"? Data karakter aman.`, () => { map[module](); save(); render(); document.getElementById('settings-slot').innerHTML = renderSettingsModal(); openModal('modal-settings'); showToast('Modul direset', 'ach'); }); }
+function exportData(){ const blob = new Blob([JSON.stringify(state,null,2)], {type:'application/json'}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'jian-os-'+todayStr()+'.json'; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url); }
+function importData(ev){ const file = ev.target.files[0]; if(!file) return; const reader = new FileReader(); reader.onload = ()=>{ try{ const parsed = JSON.parse(reader.result); state = migrateState(deepMerge(DEFAULT_STATE(), parsed)); rollover(); recomputeLifeScore(); render(); save(); showToast('Data berhasil diimpor','ach'); }catch(e){ showToast('Gagal impor: file tidak valid','bad'); } }; reader.readAsText(file); ev.target.value=''; }
+function confirmResetData(){ openConfirm('Reset SEMUA progres? Karakter kembali ke Level 1.', ()=>{ state = DEFAULT_STATE(); localStorage.removeItem(STORAGE_KEY); rollover(); render(); save(); closeModal('modal-settings'); }); }
+
+function buildModals() {
+  document.getElementById('modal-root').innerHTML = `
+  <div id="settings-slot">${renderSettingsModal()}</div>
+  <div class="modal-overlay" id="modal-add-quest"><div class="modal-sheet"><div class="modal-handle"></div><div class="modal-title" id="modal-add-quest-title">Tambah Quest</div><div class="field"><label>Judul Quest</label><input type="text" id="aq-title" placeholder="Contoh: Latihan 10 menit" class="input"></div><div class="field"><label>Tipe Quest</label><select id="aq-type" class="input"><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="monthly">Monthly</option><option value="special">Special</option><option value="legendary">Legendary</option><option value="custom">Custom</option></select></div><div class="field"><label>Tingkat Kesulitan</label><select id="aq-difficulty" class="input"><option value="easy">Easy (+10 EXP)</option><option value="normal" selected>Normal (+25 EXP)</option><option value="hard">Hard (+50 EXP)</option><option value="epic">Epic (+120 EXP)</option></select></div><div class="field"><label>Stat Reward (maks. 2)</label><div class="check-grid">${allStatKeys().map(k=>`<label class="check-item"><input type="checkbox" class="aq-stat" value="${k}" onchange="limitStatChecks(this)"> ${statDef(k).label}</label>`).join('')}</div></div><div class="field"><label class="checkbox-row" style="margin-bottom:0;"><input type="checkbox" id="aq-core"> Tandai sebagai Core Habit</label></div><div class="field"><label>Catatan (opsional)</label><textarea id="aq-notes" placeholder="Detail tambahan..." class="input"></textarea></div><div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal('modal-add-quest')">Batal</button><button class="btn btn-primary" onclick="addQuest()">Simpan</button></div></div></div>
+  <div class="modal-overlay" id="modal-kanban-edit"><div class="modal-sheet"><div class="modal-handle"></div><h2 class="modal-title" id="modal-card-title">Detail Materi</h2><input type="hidden" id="km-id"><input type="hidden" id="km-col"><div class="field"><label>Judul Materi</label><input type="text" id="km-title" placeholder="Nama buku, course, dll" class="input"></div><div class="field"><label>Tipe</label><select id="km-type" class="input"><option value="Buku">📖 Buku</option><option value="Course">🎓 Course</option><option value="Video">🎬 Video</option><option value="Artikel">📄 Artikel</option><option value="Lainnya">📦 Lainnya</option></select></div><div class="form-row"><div class="form-group half"><label>Tgl Mulai</label><input type="date" id="km-dateStart" class="input"></div><div class="form-group half"><label>Target Selesai</label><input type="date" id="km-dateTarget" class="input"></div></div><div class="field"><label>Progress: <span id="card-prog-val">0</span>%</label><input type="range" id="km-progress" min="0" max="100" value="0" style="width:100%; accent-color:var(--cyan);" oninput="document.getElementById('card-prog-val').textContent=this.value"></div><div class="field"><label>Kolom</label><select id="card-modal-col" class="input"><option value="mau_dipelajari">📚 Mau Dipelajari</option><option value="sedang_dipelajari">🔥 Sedang Dipelajari</option><option value="direview">🔍 Direview</option><option value="selesai">✅ Selesai</option></select></div><div class="field"><label>Insight / Catatan</label><textarea id="km-notes" placeholder="Tulis hal penting di sini..." class="input"></textarea></div><div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal('modal-kanban-edit')">Batal</button><button class="btn btn-danger" onclick="deleteCardFromModal()">Hapus Item</button><button class="btn btn-primary" onclick="submitCardModal()">Simpan</button></div></div></div>
+  <div class="modal-overlay" id="modal-add-todo"><div class="modal-sheet"><div class="modal-handle"></div><div class="modal-title">Tambah To-Do Cepat</div><div class="field"><label>Tugas</label><input type="text" id="at-title" placeholder="Contoh: Balas chat" class="input"></div><div class="field"><label>Prioritas Matriks</label><select id="at-priority" class="input"><option value="penting">🔴 Penting (Goals/Core)</option><option value="tidak_penting">🔵 Tidak Penting (Trivial)</option></select></div><div class="field"><label class="checkbox-row" style="margin-bottom:0;"><input type="checkbox" id="at-urgent" checked> Urgent (Hari Ini)</label></div><div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal('modal-add-todo')">Batal</button><button class="btn btn-primary" onclick="addToDo()">Simpan</button></div></div></div>
+  <div class="modal-overlay" id="modal-log-income"><div class="modal-sheet"><div class="modal-handle"></div><div class="modal-title">Catat Transaksi Finansial</div>
+    <div class="field"><label>Jenis Transaksi</label><select id="bi-type" class="input"><option value="in">Pemasukan (+)</option><option value="out">Pengeluaran (-)</option></select></div>
+    <div class="field"><label>Jumlah (Rp)</label><input type="number" id="bi-amount" placeholder="100000" inputmode="numeric" class="input"></div><div class="field"><label>Catatan (opsional)</label><input type="text" id="bi-note" placeholder="Hasil proyek, target tercapai, dll" class="input"></div><div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal('modal-log-income')">Batal</button><button class="btn btn-primary" onclick="addFinanceTransaction()">Catat</button></div></div></div>
+  <div class="modal-overlay" id="modal-update-boss"><div class="modal-sheet"><div class="modal-handle"></div><div class="modal-title">Progress Target Custom</div><div class="field"><label>Jumlah Progress (Rp/Poin)</label><input type="number" id="bt-amount" placeholder="10000" inputmode="numeric" class="input"></div><div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal('modal-update-boss')">Batal</button><button class="btn btn-primary" onclick="updateBossTarget()">Proses</button></div></div></div>
+  <div class="modal-overlay" id="modal-new-boss"><div class="modal-sheet"><div class="modal-handle"></div><div class="modal-title">Edit / Set Target Finansial Spesifik Baru</div><div class="field"><label>Nama Target</label><input type="text" id="nb-name" placeholder="Target Dana Darurat" class="input" value="${state.boss.name}"></div><div class="field"><label>Goal Angka/Nominal (Rp/Poin)</label><input type="number" id="nb-maxhp" placeholder="10000000" inputmode="numeric" class="input" value="${state.boss.maxHp}"></div><div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal('modal-new-boss')">Batal</button><button class="btn btn-gold" onclick="setNewBoss()">Tetapkan Target</button></div></div></div>
+  <div class="modal-overlay" id="modal-confirm"><div class="modal-sheet"><div class="modal-handle"></div><div class="modal-title">Konfirmasi</div><div class="small" id="confirm-message" style="line-height:1.5;color:var(--bone);"></div><div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal('modal-confirm')">Batal</button><button class="btn btn-danger" onclick="runConfirm()">Ya, Lanjutkan</button></div></div></div>
+  <div class="modal-overlay" id="modal-add-goal"><div class="modal-sheet"><div class="modal-handle"></div><div class="modal-title" id="modal-add-goal-title">Tambah Goal</div><div class="field"><label>Nama Goal</label><input type="text" id="ag-title" placeholder="Contoh: Turun berat badan" class="input"></div><div class="field"><label>Target</label><input type="number" id="ag-target" placeholder="Biarkan kosong jika dari hari deadline" class="input"></div><div class="field"><label>Satuan (Opsional)</label><input type="text" id="ag-unit" placeholder="kg, hari, dll" class="input"></div><div class="field"><label>Deadline (opsional)</label><input type="date" id="ag-deadline" class="input"></div><div class="field"><label>Catatan (opsional)</label><textarea id="ag-notes" placeholder="Detail tambahan..." class="input"></textarea></div><div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal('modal-add-goal')">Batal</button><button class="btn btn-primary" onclick="addGoal()">Simpan Goal</button></div></div></div>
+  <div class="modal-overlay" id="modal-update-goal"><div class="modal-sheet"><div class="modal-handle"></div><div class="modal-title">Update Progress Goal</div><input type="hidden" id="ug-goal-id"><div class="field"><label>Tambah progress (boleh negatif)</label><input type="number" id="ug-amount" placeholder="1" class="input"></div><div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal('modal-update-goal')">Batal</button><button class="btn btn-primary" onclick="submitGoalProgress()">Simpan</button></div></div></div>
+  <div class="modal-overlay" id="modal-add-stat"><div class="modal-sheet"><div class="modal-handle"></div><div class="modal-title">Tambah Stat Kustom</div><div class="field"><label>Nama Stat</label><input type="text" id="as-label" placeholder="Contoh: Kreativitas" class="input"></div><div class="field"><label>Kategori</label><select id="as-group" class="input"><option value="Body">💪 Body</option><option value="Mind">🧠 Mind</option><option value="Social">💬 Social</option><option value="Soul">🌌 Soul</option><option value="Finansial">💰 Finansial</option><option value="Custom" selected>✨ Custom</option></select></div><div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal('modal-add-stat')">Batal</button><button class="btn btn-primary" onclick="addCustomStat()">Tambah</button></div></div></div>
+  <div class="modal-overlay" id="modal-add-habit"><div class="modal-sheet"><div class="modal-handle"></div><div class="modal-title">Tambah Habit Baru</div><div class="field"><label>Nama Habit</label><input type="text" id="ah-title" placeholder="Contoh: Minum air 2 Liter" class="input"></div><div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal('modal-add-habit')">Batal</button><button class="btn btn-primary" onclick="addHabit()">Simpan Habit</button></div></div></div>
+  <div class="modal-overlay" id="modal-sip-pagi"><div class="modal-sheet"><div class="modal-handle"></div><div class="modal-title">SIP PAGI</div><div class="small muted mb-14">Checklist Persiapan Pagi</div>${DEFAULT_STATE().sip.config.pagi.map((t,i)=>`<div class="field"><label style="display:flex; gap:8px;"><input type="checkbox" id="sp${i}"> ${t}</label></div>`).join('')}<div class="modal-actions mt-14"><button class="btn btn-ghost" onclick="closeModal('modal-sip-pagi')">Tutup</button><button class="btn btn-primary" onclick="submitSIPPagi()">Selesai Pagi (+30 EXP)</button></div></div></div>
+  <div class="modal-overlay" id="modal-sip-siang"><div class="modal-sheet"><div class="modal-handle"></div><div class="modal-title">SIP SIANG</div><div class="small muted mb-14">Evaluasi Tengah Hari</div>${DEFAULT_STATE().sip.config.siang.map((t,i)=>`<div class="field"><label style="display:flex; gap:8px;"><input type="checkbox" id="ss${i}"> ${t}</label></div>`).join('')}<div class="field mt-14"><label>Persentase Selesai Hari Ini (%)</label><input type="number" id="sip-siang-prog" placeholder="65" class="input"></div><div class="modal-actions mt-14"><button class="btn btn-ghost" onclick="closeModal('modal-sip-siang')">Tutup</button><button class="btn btn-primary" onclick="submitSIPSiang()">Selesai Siang (+30 EXP)</button></div></div></div>
+  `;
+}
+function limitStatChecks(el){ const checked = document.querySelectorAll('.aq-stat:checked'); if(checked.length>2){ el.checked=false; } }
+function openModal(id){ const el = document.getElementById(id); if(el) { el.classList.add('open'); SFX.click(); } }
+function closeModal(id){ const el = document.getElementById(id); if(el) el.classList.remove('open'); SFX.click(); }
+function openConfirm(message, cb){ document.getElementById('confirm-message').textContent = message; confirmCallback = cb; openModal('modal-confirm'); }
+function runConfirm(){ closeModal('modal-confirm'); if(confirmCallback){ confirmCallback(); confirmCallback=null; } }
+
+function submitSIPPagi() { const items = state.sip.config.pagi; state.sip.pagi.status = 'done'; state.sip.pagi.checkedCount = items.filter((_, i) => document.getElementById('sp'+i)?.checked).length; gainExp(30); bumpStat('discipline', 2); addActivityLog('SIP Pagi'); if(state.settings.showFloatingExp) showToast('+30 EXP', 'exp'); closeModal('modal-sip-pagi'); showToast('SIP Pagi Selesai. Semangat!', 'ach'); SFX.questComplete(); render(); save(); }
+function submitSIPSiang() { const items = state.sip.config.siang; state.sip.siang.status = 'done'; state.sip.siang.progress = Math.max(0, Math.min(100, parseInt(document.getElementById('sip-siang-prog').value, 10) || 0)); state.sip.siang.checkedCount = items.filter((_, i) => document.getElementById('ss'+i)?.checked).length; gainExp(30); bumpStat('focus', 2); addActivityLog('SIP Siang'); if(state.settings.showFloatingExp) showToast('+30 EXP', 'exp'); closeModal('modal-sip-siang'); showToast('SIP Siang Selesai. Tetap fokus!', 'ach'); SFX.questComplete(); render(); save(); }
+function showFloatingExp(amount){ showToast((amount>=0?'+':'')+amount+' EXP', 'exp'); }
+function showToast(text, type){ const c = document.getElementById('toast-container'); const t = document.createElement('div'); t.className = 'toast'+(type?' '+type:''); t.textContent = text; c.appendChild(t); setTimeout(()=>t.remove(), 2700); }
+function showLevelUp(level){ const el = document.getElementById('fx-levelup'); document.getElementById('fx-levelup-title').textContent = 'Lv. '+level; el.classList.add('active'); setTimeout(()=>el.classList.remove('active'), 1500); }
+function triggerBreakthrough(realmName){ const el = document.getElementById('fx-breakthrough'); document.getElementById('fx-breakthrough-title').textContent = realmName; el.classList.add('active'); setTimeout(()=>el.classList.remove('active'), 2600); }
+function triggerBossDefeat(name){ state.character.bossesDefeated = (state.character.bossesDefeated||0)+1; const el = document.getElementById('fx-boss'); document.getElementById('fx-boss-title').textContent = name; el.classList.add('active'); setTimeout(()=>el.classList.remove('active'), 2600); }
+function showTrophy(title, subtitle, icon) { document.getElementById('fx-boss-title').textContent = title; document.querySelector('#fx-boss .fx-sub').textContent = subtitle; const el = document.getElementById('fx-boss'); el.classList.add('active'); SFX.levelUp(); setTimeout(()=>el.classList.remove('active'), 3500); }
+
+function init(){
+  let loaded = loadState(); 
+  state = loaded ? migrateState(deepMerge(DEFAULT_STATE(), loaded)) : DEFAULT_STATE();
+  rollover(); recomputeLifeScore(); buildModals(); render(); 
+  setInterval(updateTimeBlockUI, 30000); 
+}
+window.onload = function() { init(); };
+</script>
+</body>
+</html>
