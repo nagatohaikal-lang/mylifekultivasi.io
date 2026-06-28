@@ -1857,6 +1857,31 @@ function init(){
   state = loaded ? migrateState(deepMerge(DEFAULT_STATE(), loaded)) : DEFAULT_STATE();
   rollover(); recomputeLifeScore(); buildModals(); render(); 
   setInterval(updateTimeBlockUI, 30000); 
+
+  // FITUR BARU: AUTO-SYNC DARI CLOUD SAAT WEB DIBUKA
+  if (state && state.character && state.character.name) {
+      // Diam-diam mengecek Google Sheets di latar belakang
+      fetch(URL_CLOUD + "?username=" + encodeURIComponent(state.character.name))
+      .then(response => response.json())
+      .then(res => {
+          if(res.status === 'success') {
+              const cloudLevel = parseInt(res.level) || 1;
+              const cloudExp = parseInt(res.exp) || 0;
+              
+              // Jika data di Cloud lebih tinggi dari data di browser ini, otomatis Update!
+              if(cloudLevel > state.character.level || (cloudLevel === state.character.level && cloudExp > state.character.exp)) {
+                  state.character.level = cloudLevel;
+                  state.character.exp = cloudExp;
+                  recomputeLifeScore();
+                  save();
+                  render();
+                  showToast("☁️ Progres berhasil tersinkronisasi dari Cloud!", "ach");
+                  SFX.success();
+              }
+          }
+      })
+      .catch(err => console.log("Koneksi cloud terganggu."));
+  }
 }
 window.onload = function() { init(); };
 </script>
