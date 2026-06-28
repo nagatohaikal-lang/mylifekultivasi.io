@@ -549,7 +549,7 @@ const SFX = {
     click() { AudioEngine.play([600], 'sine', 0.05, 0.02); },
     success() { AudioEngine.play([400, 600, 800], 'sine', 0.1, 0.05); },
     questComplete() { AudioEngine.play([600, 800], 'sine', 0.1, 0.05); },
-    victory() { AudioEngine.play([523.25, 659.25, 783.99, 1046.50], 'square', 0.15, 0.05); }, // Triumphant Arpeggio
+    victory() { AudioEngine.play([523.25, 659.25, 783.99, 1046.50], 'square', 0.15, 0.05); },
     levelUp() { AudioEngine.play([300, 400, 500, 600, 800], 'square', 0.15, 0.05); },
     error() { AudioEngine.play([200, 150], 'sawtooth', 0.15, 0.05); },
     coin() { AudioEngine.play([1200], 'sine', 0.1, 0.03); },
@@ -567,25 +567,19 @@ document.addEventListener('click', (e) => {
 
 const STORAGE_KEY = 'jian-ascension-state-vfinal-updated';
 
-/* ==============================================================
-   MESIN PENGIRIM KE GOOGLE SHEETS (CLOUD)
-   ============================================================== */
 const URL_CLOUD = "https://script.google.com/macros/s/AKfycbzVch4awvs6cUov6Ky3jf4Jg7GBjrKPRYoFj8fxD4C8X-Mz93LFtRrmF9VhBHbASq5q-g/exec";
 
 function simpanDataKeCloud() {
     if (!state || !state.character) return;
     
-    // Munculkan notifikasi loading
     showToast("Membuka portal ke Pusaka Awan...", "muted");
     
-    // Siapkan data pemain
     const data = {
         username: state.character.name,
         level: state.character.level,
         exp: state.character.exp
     };
 
-    // Tembakkan data ke URL Apps Script
     fetch(URL_CLOUD, {
         method: "POST",
         headers: { "Content-Type": "text/plain;charset=utf-8" },
@@ -606,7 +600,34 @@ function simpanDataKeCloud() {
         SFX.error();
     });
 }
-/* ============================================================== */
+
+function muatDataDariCloud() {
+    if (!state || !state.character) return;
+    showToast("Memanggil ingatan dari Pusaka Awan...", "muted");
+    
+    fetch(URL_CLOUD + "?username=" + encodeURIComponent(state.character.name))
+    .then(response => response.json())
+    .then(res => {
+        if(res.status === 'success') {
+            state.character.level = parseInt(res.level) || 1;
+            state.character.exp = parseInt(res.exp) || 0;
+            
+            recomputeLifeScore();
+            save();
+            render();
+            
+            showToast("Progres berhasil dipulihkan!", "ach");
+            SFX.levelUp();
+        } else {
+            showToast("Catatan tidak ditemukan di Cloud.", "bad");
+            SFX.error();
+        }
+    })
+    .catch(error => {
+        showToast("Portal tertutup! Periksa koneksi.", "bad");
+        SFX.error();
+    });
+}
 
 const STAT_META = {
   strength:{label:'Strength',group:'Body',color:'var(--jade)'}, health:{label:'Health',group:'Body',color:'var(--jade)'},
@@ -673,7 +694,6 @@ function getDynamicRealmInfo(c) {
         };
     }
     
-    // Dari Level 20 ke atas, mengikuti indeks Energy. Sinkronisasi jika ketinggalan.
     let idx = Math.max(2, c.realmIndex || 0); 
     const r = state.realms[idx] || state.realms[state.realms.length-1];
     const nextR = state.realms[idx+1];
@@ -760,20 +780,14 @@ const TITLE_HINTS = {
 function getTitleStyle(title) {
     let base = 'padding: 6px 18px; border-radius: 20px; font-size: 13.5px; letter-spacing: 1.5px; text-transform: uppercase; margin-top: 8px; position: relative; z-index: 5; text-align: center; transition: all 0.3s ease; ';
 
-    // Mythic & Highest Tier
     if(title === 'All-Seer\'s Nightmare') return base + 'background:linear-gradient(90deg, #111, #ff0044); color:#fff; text-shadow:0 0 10px #ff0044; border:1px solid #ff0044; font-family: var(--font-display); font-weight:900; animation: floatBanner 3s ease-in-out infinite;';
     if(title === 'Royal Ancient God') return base + 'background:linear-gradient(90deg, #ffd700, #ff8c00); color:#000; font-weight:900; border:none; box-shadow: 0 0 15px rgba(255,215,0,0.6); font-family: var(--font-display); text-shadow: 0 1px 2px rgba(255,255,255,0.8);';
     if(title === 'Suzaku Lord') return base + 'background:linear-gradient(90deg, #ff4768, #ff8a3d); color:#fff; border:none; box-shadow: 0 0 15px rgba(255,71,104,0.6); font-family: var(--font-display); font-weight:800;';
-    
-    // Legendary
     if(title === 'Heaven Trampler' || title === 'Defying Sovereign' || title === 'Dragon Ascendant') return base + 'background:linear-gradient(90deg, var(--gold), var(--orange)); color:#1a1206; font-weight:800; font-family: var(--font-display); box-shadow: 0 0 10px rgba(240,185,59,0.4);';
     if(title === 'Ji Realm Master' || title === 'Thunder Sovereign') return base + 'background:linear-gradient(90deg, var(--cyan), var(--arise-bright)); color:#0a0a14; font-weight:800; border:none; font-family: var(--font-display); box-shadow: 0 0 10px rgba(45,212,244,0.4);';
     if(title === 'Fate Defier' || title === 'Karma Lord' || title === 'True & False Lord') return base + 'background:linear-gradient(90deg, var(--jade), var(--cyan)); color:#0a0a14; font-weight:800; border:none; font-family: var(--font-display);';
-    
-    // Epic / Rare
     if(title === 'Dao Scholar' || title === 'Wealth Core Lord' || title === 'Realm Walker' || title === 'Mortal Cultivator') return base + 'background:rgba(124,92,255,0.15); color:var(--arise-bright); border: 1px solid rgba(124,92,255,0.5); font-family: var(--font-display); font-weight:700;';
 
-    // Common/Basic
     return base + 'color:var(--muted); background:rgba(255,255,255,0.05); border: 1px solid var(--border-strong); font-family: var(--font-system); font-weight:600;';
 }
 
@@ -852,7 +866,6 @@ function save(){ clearTimeout(saveTimer); saveTimer = setTimeout(()=>{ if(!state
 
 function addActivityLog(note, exp = 0) { const today = todayStr(); state.meta.activityLog = state.meta.activityLog || {}; state.meta.activityLog[today] = (state.meta.activityLog[today] || 0) + 1; }
 
-// EXP Scaling: Dibuat jauh lebih curam di level atas
 function expNeeded(level){ 
     return Math.round(100 * Math.pow(level, 1.7) + (level > 10 ? Math.pow(level - 10, 2) * 50 : 0)); 
 }
@@ -860,7 +873,6 @@ function spiritualNeeded(level){ return Math.round(30 * Math.pow(level, 1.3)); }
 
 function recomputeLifeScore(){
   if(!state) return; const c = state.character; const statSum = Object.values(state.stats).reduce((a,b)=>a+b,0);
-  // Ensured starting from 0 by subtracting 1 from levels
   c.lifeScore = Math.max(0, (c.level-1)*10 + statSum*2 + c.streak*5 + c.realmIndex*50 + (state.spiritual.level-1)*8);
 }
 
@@ -886,7 +898,6 @@ function gainExp(amount){
   let leveled=false; while(c.level<1000 && c.exp >= expNeeded(c.level)){ c.exp -= expNeeded(c.level); c.level += 1; leveled=true; }
   if(leveled){ 
       SFX.levelUp(); showLevelUp(c.level); 
-      // Force Realm Sinkronisasi untuk Level 20+ agar masuk ke struktur energi dengan benar
       if(c.level >= 20 && c.realmIndex < 2) {
           c.realmIndex = 2;
       }
@@ -930,7 +941,7 @@ function completeQuest(id){
   state.meta.completedTodayCount = (state.meta.completedTodayCount||0)+1; state.character.totalQuests = (state.character.totalQuests||0)+1;
   afterQuestComplete(q); addActivityLog(`Quest Selesai: ${q.title}`); gainExp(exp); addRealmEnergy(Math.round(exp*0.5));
   (q.stats||[]).forEach(s=> bumpStat(s, Math.max(1,Math.round(exp/12))));
-  state.character.hp = Math.min(state.character.maxHp, state.character.hp + 2); // Restore HP
+  state.character.hp = Math.min(state.character.maxHp, state.character.hp + 2); 
   if(state.settings.showFloatingExp) showFloatingExp(exp); 
   SFX.questComplete(); checkAchievements(); render(); save();
 }
@@ -1167,7 +1178,6 @@ function updateBossTarget(){
   state.boss.currentHp = Math.max(0, state.boss.currentHp - amount);
   closeModal('modal-update-boss');
   if(state.boss.currentHp<=0 && !wasDefeated){ 
-      // Save Boss History
       state.bossHistory = state.bossHistory || [];
       state.bossHistory.unshift({
           name: state.boss.name,
@@ -1593,7 +1603,6 @@ function renderBoss(){
     const b = state.boss; const pct = Math.min(100, ((b.maxHp - b.currentHp) / b.maxHp) * 100).toFixed(1); 
     const defeated = b.currentHp <= 0;
     
-    // Pemasukan / Pengeluaran General
     const logHtml = (state.financeLog||[]).length ? (state.financeLog||[]).slice(0,10).map(l=>{
         const isOut = l.type === 'out';
         return `<div class="log-item"><span class="muted">${l.date}${l.note?' · '+escapeHtml(l.note):''}</span><span class="log-amount" style="color:${isOut?'var(--crimson)':'var(--jade)'}">${isOut?'-':'+'}${formatRupiah(l.amount)}</span></div>`;
@@ -1602,11 +1611,9 @@ function renderBoss(){
     const pengeluaran = (state.financeLog||[]).filter(l => l.type === 'out').reduce((sum, l) => sum + l.amount, 0);
     const sEntries = state.sedekah?.entries || []; const sedekahLogHtml = sEntries.length ? sEntries.slice(0,10).map(e=>`<tr><td>${e.date}</td><td style="color:var(--gold);">Rp ${e.nominal.toLocaleString()}</td><td>+${e.expGained}</td><td>${escapeHtml(e.note)}</td></tr>`).join('') : `<tr><td colspan="4" style="text-align:center;color:var(--muted);">Belum ada riwayat sedekah</td></tr>`;
     
-    // Riwayat Target Finansial (Boss History)
     const bossHistHtml = (state.bossHistory||[]).length ? (state.bossHistory||[]).map(h => `<div class="log-item" style="flex-direction:column; align-items:flex-start; gap:4px;"><div class="row-between" style="width:100%;"><span style="color:var(--gold); font-weight:700; font-family:var(--font-display);">${escapeHtml(h.name)}</span><span class="pill" style="background:rgba(52,211,153,0.15);color:var(--jade);">✓ Tercapai</span></div><div class="row-between small muted" style="width:100%;"><span>Target: ${formatRupiah(h.target)}</span><span>${h.date} ${h.time}</span></div></div>`).join('') : '<div class="small muted" style="text-align:center;padding:10px 0;">Belum ada target yang diselesaikan.</div>';
 
     let html = `
-    <!-- Custom Target Khusus -->
     <div class="card boss-card glass-panel" style="background: linear-gradient(135deg, rgba(124,92,255,0.05), transparent);">
       <div class="boss-name" style="font-family:var(--font-display);font-weight:800;display:flex;justify-content:center;align-items:center;gap:8px;">
         <span style="font-size:28px;">🎯</span> ${escapeHtml(b.name)}
@@ -1620,7 +1627,6 @@ function renderBoss(){
       </div>`}
     </div>
     
-    <!-- Pemasukan & Pengeluaran -->
     <div class="card boss-card glass-panel" style="background: linear-gradient(135deg, rgba(240,185,59,0.05), transparent);">
       <div class="boss-name" style="font-family:var(--font-display);font-weight:800;display:flex;justify-content:center;align-items:center;gap:8px;"><span style="font-size:28px;">💰</span> Pemasukan & Pengeluaran</div>
       <div class="commerce-grid">
@@ -1662,13 +1668,12 @@ function renderProjectKanban() {
     return html + `</div>`;
 }
 
-// Menghitung EXP project berdasarkan lama pengerjaan (Kecil, Menengah, Besar)
 function getProjectReward(card) {
     const start = card.dateStart || new Date(card.createdAt).toLocaleDateString('en-CA');
     const duration = Math.max(1, diffDays(start, todayStr()));
-    if(duration <= 7) return 500 + (duration * 20); // Project Kecil
-    if(duration <= 30) return 1500 + (duration * 30); // Project Menengah
-    return 5000 + (duration * 50); // Project Besar
+    if(duration <= 7) return 500 + (duration * 20); 
+    if(duration <= 30) return 1500 + (duration * 30); 
+    return 5000 + (duration * 50); 
 }
 
 function addProjectProgress(id) {
@@ -1794,7 +1799,10 @@ function renderSettingsModal(){
     <details class="settings-section"><summary>💾 Manajemen Data & Reset</summary><div class="settings-body">
       
       <div class="settings-divider">Backup Cloud (Google Sheets)</div>
-      <button class="btn btn-gold btn-block" style="margin-top:0.5rem" onclick="simpanDataKeCloud()">☁️ Segel Data ke Pusaka Cloud</button>
+      <div class="settings-btn-row">
+        <button class="btn btn-gold" style="flex:1;" onclick="simpanDataKeCloud()">☁️ Segel (Save)</button>
+        <button class="btn btn-primary" style="flex:1;" onclick="muatDataDariCloud()">📥 Muat (Load)</button>
+      </div>
 
       <div class="settings-divider">Lokal Backup</div>
       <div class="settings-btn-row"><button class="btn btn-primary" onclick="exportData()" style="flex:1;">📤 Export JSON</button><label class="btn btn-secondary" style="flex:1; cursor:pointer; text-align:center;">📥 Import JSON<input type="file" accept=".json" style="display:none;" onchange="importData(event)"></label></div><div class="settings-divider">Reset Per-Modul (Progres Aman)</div><div class="settings-btn-row"><button class="btn btn-secondary btn-sm" onclick="resetModule('todos')">Reset To-Do</button><button class="btn btn-secondary btn-sm" onclick="resetModule('kanban')">Reset Kanban</button><button class="btn-secondary btn-sm" onclick="resetModule('sedekah')">Reset Sedekah</button><button class="btn-secondary btn-sm" onclick="resetModule('habits')">Reset Habits</button></div><button class="btn btn-danger btn-block" onclick="confirmResetData()" style="margin-top:1rem">⚠️ RESET TOTAL (HAPUS SEMUA)</button></div></details>
