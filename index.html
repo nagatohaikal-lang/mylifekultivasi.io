@@ -565,68 +565,30 @@ document.addEventListener('click', (e) => {
    createRipple(e);
 });
 
+/* ==============================================================
+   AUTO-SYNC CLOUD: TERSAMBUNG PENUH SEPERTI APPS SCRIPT
+   ============================================================== */
 const STORAGE_KEY = 'jian-ascension-state-vfinal-updated';
-
 const URL_CLOUD = "https://script.google.com/macros/s/AKfycbzVch4awvs6cUov6Ky3jf4Jg7GBjrKPRYoFj8fxD4C8X-Mz93LFtRrmF9VhBHbASq5q-g/exec";
 
-function simpanDataKeCloud() {
-    if (!state || !state.character) return;
-    
-    showToast("Membuka portal ke Pusaka Awan...", "muted");
-    
-    const data = {
-        username: state.character.name,
-        level: state.character.level,
-        exp: state.character.exp
-    };
-
-    fetch(URL_CLOUD, {
-        method: "POST",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify(data)
-    })
-    .then(response => response.json())
-    .then(res => {
-        if(res.status === 'success') {
-            showToast("Pencapaian berhasil disegel di Cloud!", "ach");
-            SFX.victory();
-        } else {
-            showToast("Gagal menyegel data.", "bad");
-            SFX.error();
-        }
-    })
-    .catch(error => {
-        showToast("Portal tertutup! Periksa koneksi internet.", "bad");
-        SFX.error();
-    });
-}
-
-function muatDataDariCloud() {
-    if (!state || !state.character) return;
-    showToast("Memanggil ingatan dari Pusaka Awan...", "muted");
-    
-    fetch(URL_CLOUD + "?username=" + encodeURIComponent(state.character.name))
-    .then(response => response.json())
-    .then(res => {
-        if(res.status === 'success') {
-            state.character.level = parseInt(res.level) || 1;
-            state.character.exp = parseInt(res.exp) || 0;
+// Menyimpan secara diam-diam setiap kali Anda merubah sesuatu (misal: selesai quest)
+function save(){ 
+    clearTimeout(saveTimer); 
+    saveTimer = setTimeout(()=>{ 
+        if(!state) return; 
+        try{ 
+            // 1. Simpan di Lokal (Browser)
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); 
             
-            recomputeLifeScore();
-            save();
-            render();
-            
-            showToast("Progres berhasil dipulihkan!", "ach");
-            SFX.levelUp();
-        } else {
-            showToast("Catatan tidak ditemukan di Cloud.", "bad");
-            SFX.error();
-        }
-    })
-    .catch(error => {
-        showToast("Portal tertutup! Periksa koneksi.", "bad");
-        SFX.error();
-    });
+            // 2. Simpan di Cloud secara rahasia (Background Process)
+            fetch(URL_CLOUD, { 
+                method: "POST", 
+                headers: { "Content-Type": "text/plain;charset=utf-8" }, 
+                body: JSON.stringify(state) 
+            }).catch(e => { console.log("Gagal auto-sync ke cloud"); });
+
+        } catch(e) {} 
+    }, 1000); 
 }
 
 const STAT_META = {
@@ -862,7 +824,6 @@ function deepMerge(def, loaded){
 }
 
 function loadState(){ try{ const saved = localStorage.getItem(STORAGE_KEY); if(saved) return JSON.parse(saved); } catch(e) { console.error(e); } return null; }
-function save(){ clearTimeout(saveTimer); saveTimer = setTimeout(()=>{ if(!state) return; try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e) {} }, 350); }
 
 function addActivityLog(note, exp = 0) { const today = todayStr(); state.meta.activityLog = state.meta.activityLog || {}; state.meta.activityLog[today] = (state.meta.activityLog[today] || 0) + 1; }
 
@@ -941,7 +902,7 @@ function completeQuest(id){
   state.meta.completedTodayCount = (state.meta.completedTodayCount||0)+1; state.character.totalQuests = (state.character.totalQuests||0)+1;
   afterQuestComplete(q); addActivityLog(`Quest Selesai: ${q.title}`); gainExp(exp); addRealmEnergy(Math.round(exp*0.5));
   (q.stats||[]).forEach(s=> bumpStat(s, Math.max(1,Math.round(exp/12))));
-  state.character.hp = Math.min(state.character.maxHp, state.character.hp + 2); 
+  state.character.hp = Math.min(state.character.maxHp, state.character.hp + 2); // Restore HP
   if(state.settings.showFloatingExp) showFloatingExp(exp); 
   SFX.questComplete(); checkAchievements(); render(); save();
 }
@@ -1178,6 +1139,7 @@ function updateBossTarget(){
   state.boss.currentHp = Math.max(0, state.boss.currentHp - amount);
   closeModal('modal-update-boss');
   if(state.boss.currentHp<=0 && !wasDefeated){ 
+      // Save Boss History
       state.bossHistory = state.bossHistory || [];
       state.bossHistory.unshift({
           name: state.boss.name,
@@ -1603,6 +1565,7 @@ function renderBoss(){
     const b = state.boss; const pct = Math.min(100, ((b.maxHp - b.currentHp) / b.maxHp) * 100).toFixed(1); 
     const defeated = b.currentHp <= 0;
     
+    // Pemasukan / Pengeluaran General
     const logHtml = (state.financeLog||[]).length ? (state.financeLog||[]).slice(0,10).map(l=>{
         const isOut = l.type === 'out';
         return `<div class="log-item"><span class="muted">${l.date}${l.note?' · '+escapeHtml(l.note):''}</span><span class="log-amount" style="color:${isOut?'var(--crimson)':'var(--jade)'}">${isOut?'-':'+'}${formatRupiah(l.amount)}</span></div>`;
@@ -1611,9 +1574,11 @@ function renderBoss(){
     const pengeluaran = (state.financeLog||[]).filter(l => l.type === 'out').reduce((sum, l) => sum + l.amount, 0);
     const sEntries = state.sedekah?.entries || []; const sedekahLogHtml = sEntries.length ? sEntries.slice(0,10).map(e=>`<tr><td>${e.date}</td><td style="color:var(--gold);">Rp ${e.nominal.toLocaleString()}</td><td>+${e.expGained}</td><td>${escapeHtml(e.note)}</td></tr>`).join('') : `<tr><td colspan="4" style="text-align:center;color:var(--muted);">Belum ada riwayat sedekah</td></tr>`;
     
+    // Riwayat Target Finansial (Boss History)
     const bossHistHtml = (state.bossHistory||[]).length ? (state.bossHistory||[]).map(h => `<div class="log-item" style="flex-direction:column; align-items:flex-start; gap:4px;"><div class="row-between" style="width:100%;"><span style="color:var(--gold); font-weight:700; font-family:var(--font-display);">${escapeHtml(h.name)}</span><span class="pill" style="background:rgba(52,211,153,0.15);color:var(--jade);">✓ Tercapai</span></div><div class="row-between small muted" style="width:100%;"><span>Target: ${formatRupiah(h.target)}</span><span>${h.date} ${h.time}</span></div></div>`).join('') : '<div class="small muted" style="text-align:center;padding:10px 0;">Belum ada target yang diselesaikan.</div>';
 
     let html = `
+    <!-- Custom Target Khusus -->
     <div class="card boss-card glass-panel" style="background: linear-gradient(135deg, rgba(124,92,255,0.05), transparent);">
       <div class="boss-name" style="font-family:var(--font-display);font-weight:800;display:flex;justify-content:center;align-items:center;gap:8px;">
         <span style="font-size:28px;">🎯</span> ${escapeHtml(b.name)}
@@ -1627,6 +1592,7 @@ function renderBoss(){
       </div>`}
     </div>
     
+    <!-- Pemasukan & Pengeluaran -->
     <div class="card boss-card glass-panel" style="background: linear-gradient(135deg, rgba(240,185,59,0.05), transparent);">
       <div class="boss-name" style="font-family:var(--font-display);font-weight:800;display:flex;justify-content:center;align-items:center;gap:8px;"><span style="font-size:28px;">💰</span> Pemasukan & Pengeluaran</div>
       <div class="commerce-grid">
@@ -1668,12 +1634,13 @@ function renderProjectKanban() {
     return html + `</div>`;
 }
 
+// Menghitung EXP project berdasarkan lama pengerjaan (Kecil, Menengah, Besar)
 function getProjectReward(card) {
     const start = card.dateStart || new Date(card.createdAt).toLocaleDateString('en-CA');
     const duration = Math.max(1, diffDays(start, todayStr()));
-    if(duration <= 7) return 500 + (duration * 20); 
-    if(duration <= 30) return 1500 + (duration * 30); 
-    return 5000 + (duration * 50); 
+    if(duration <= 7) return 500 + (duration * 20); // Project Kecil
+    if(duration <= 30) return 1500 + (duration * 30); // Project Menengah
+    return 5000 + (duration * 50); // Project Besar
 }
 
 function addProjectProgress(id) {
@@ -1798,11 +1765,8 @@ function renderSettingsModal(){
     <details class="settings-section"><summary>⚔️ EXP & Gameplay</summary><div class="settings-body"><label style="display:block;font-size:11.5px;color:var(--muted);margin-bottom:5px;font-weight:600;">Multiplier EXP</label><div class="btn-group">${[0.5,1.0,1.5,2.0].map(m => `<button class="btn btn-secondary ${s.expMultiplier===m?'active':''}" onclick="setSetting('expMultiplier',${m})">${m}x</button>`).join('')}</div><div class="toggle-row"><label>Efek Suara (SFX)</label><input type="checkbox" ${s.soundEnabled?'checked':''} onchange="setSetting('soundEnabled',this.checked)"></div><div class="toggle-row"><label>Floating EXP Animasi</label><input type="checkbox" ${s.showFloatingExp?'checked':''} onchange="setSetting('showFloatingExp',this.checked)"></div><div class="toggle-row"><label>Combo Bonus</label><input type="checkbox" ${s.comboBonus?'checked':''} onchange="setSetting('comboBonus',this.checked)"></div><div class="toggle-row"><label>Streak Bonus</label><input type="checkbox" ${s.streakBonus?'checked':''} onchange="setSetting('streakBonus',this.checked)"></div></div></details>
     <details class="settings-section"><summary>💾 Manajemen Data & Reset</summary><div class="settings-body">
       
-      <div class="settings-divider">Backup Cloud (Google Sheets)</div>
-      <div class="settings-btn-row">
-        <button class="btn btn-gold" style="flex:1;" onclick="simpanDataKeCloud()">☁️ Segel (Save)</button>
-        <button class="btn btn-primary" style="flex:1;" onclick="muatDataDariCloud()">📥 Muat (Load)</button>
-      </div>
+      <div class="settings-divider" style="color:var(--cyan); font-weight:bold;">Cloud Sync Otomatis Aktif ☁️</div>
+      <div class="small muted mt-10">Data Anda selalu tersimpan dan diperbarui otomatis ke Cloud setiap kali web dibuka atau ada perubahan. Tidak perlu lagi tombol manual!</div>
 
       <div class="settings-divider">Lokal Backup</div>
       <div class="settings-btn-row"><button class="btn btn-primary" onclick="exportData()" style="flex:1;">📤 Export JSON</button><label class="btn btn-secondary" style="flex:1; cursor:pointer; text-align:center;">📥 Import JSON<input type="file" accept=".json" style="display:none;" onchange="importData(event)"></label></div><div class="settings-divider">Reset Per-Modul (Progres Aman)</div><div class="settings-btn-row"><button class="btn btn-secondary btn-sm" onclick="resetModule('todos')">Reset To-Do</button><button class="btn btn-secondary btn-sm" onclick="resetModule('kanban')">Reset Kanban</button><button class="btn-secondary btn-sm" onclick="resetModule('sedekah')">Reset Sedekah</button><button class="btn-secondary btn-sm" onclick="resetModule('habits')">Reset Habits</button></div><button class="btn btn-danger btn-block" onclick="confirmResetData()" style="margin-top:1rem">⚠️ RESET TOTAL (HAPUS SEMUA)</button></div></details>
@@ -1852,37 +1816,44 @@ function triggerBreakthrough(realmName){ const el = document.getElementById('fx-
 function triggerBossDefeat(name){ state.character.bossesDefeated = (state.character.bossesDefeated||0)+1; const el = document.getElementById('fx-boss'); document.getElementById('fx-boss-title').textContent = name; el.classList.add('active'); setTimeout(()=>el.classList.remove('active'), 2600); }
 function showTrophy(title, subtitle, icon) { document.getElementById('fx-boss-title').textContent = title; document.querySelector('#fx-boss .fx-sub').textContent = subtitle; const el = document.getElementById('fx-boss'); el.classList.add('active'); SFX.levelUp(); setTimeout(()=>el.classList.remove('active'), 3500); }
 
+/* ==============================================================
+   INISIALISASI AWAL - MENGUNDUH DATA DARI CLOUD SAAT DIBUKA
+   ============================================================== */
 function init(){
-  let loaded = loadState(); 
-  state = loaded ? migrateState(deepMerge(DEFAULT_STATE(), loaded)) : DEFAULT_STATE();
+  // Tampilkan layar memuat sebentar
+  document.body.insertAdjacentHTML('beforeend', '<div id="cloud-loading" style="position:fixed;inset:0;z-index:9999;background:var(--void);display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--cyan);font-family:var(--font-display);font-size:18px;"><div class="ring-orbit" style="position:relative; width:40px; height:40px; margin-bottom:20px; animation: orbitSpin 2s linear infinite; border: 2px dashed var(--cyan); border-radius:50%;"></div> Menyelaraskan dengan Cloud...</div>');
+  
+  fetch(URL_CLOUD)
+  .then(res => res.text())
+  .then(text => {
+     let cloudState = null;
+     try { cloudState = JSON.parse(text); } catch(e){}
+     
+     // Jika cloud punya data utuh, pakai data cloud
+     if(cloudState && !cloudState.status) { 
+         state = migrateState(deepMerge(DEFAULT_STATE(), cloudState));
+         localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); // Backup ke lokal browser
+     } else {
+         // Jika kosong, pakai data lokal yang ada
+         let loaded = loadState(); 
+         state = loaded ? migrateState(deepMerge(DEFAULT_STATE(), loaded)) : DEFAULT_STATE();
+     }
+     finishInit();
+  })
+  .catch(err => {
+     // Kalau sedang offline (tidak ada sinyal), pakai data lokal browser
+     let loaded = loadState(); 
+     state = loaded ? migrateState(deepMerge(DEFAULT_STATE(), loaded)) : DEFAULT_STATE();
+     finishInit();
+  });
+}
+
+function finishInit() {
+  const l = document.getElementById('cloud-loading'); if(l) l.remove();
   rollover(); recomputeLifeScore(); buildModals(); render(); 
   setInterval(updateTimeBlockUI, 30000); 
-
-  // FITUR BARU: AUTO-SYNC DARI CLOUD SAAT WEB DIBUKA
-  if (state && state.character && state.character.name) {
-      // Diam-diam mengecek Google Sheets di latar belakang
-      fetch(URL_CLOUD + "?username=" + encodeURIComponent(state.character.name))
-      .then(response => response.json())
-      .then(res => {
-          if(res.status === 'success') {
-              const cloudLevel = parseInt(res.level) || 1;
-              const cloudExp = parseInt(res.exp) || 0;
-              
-              // Jika data di Cloud lebih tinggi dari data di browser ini, otomatis Update!
-              if(cloudLevel > state.character.level || (cloudLevel === state.character.level && cloudExp > state.character.exp)) {
-                  state.character.level = cloudLevel;
-                  state.character.exp = cloudExp;
-                  recomputeLifeScore();
-                  save();
-                  render();
-                  showToast("☁️ Progres berhasil tersinkronisasi dari Cloud!", "ach");
-                  SFX.success();
-              }
-          }
-      })
-      .catch(err => console.log("Koneksi cloud terganggu."));
-  }
 }
+
 window.onload = function() { init(); };
 </script>
 </body>
